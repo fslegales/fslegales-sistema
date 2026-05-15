@@ -89,6 +89,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;font-size:15px}
 .btn-dark:active{opacity:.8}
 .btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
 .btn-ghost:active{background:var(--surface2)}
+.btn-primary{background:var(--blue-mid);color:#fff;border-color:var(--blue-mid)}
+.btn-primary:active{opacity:.85}
 .btn-danger{background:transparent;border-color:#7f1d1d;color:var(--red)}
 .btn-danger:active{background:var(--red-bg)}
 .btn-sm{padding:7px 12px;font-size:13px}
@@ -5635,15 +5637,7 @@ if(typeof supabase==='undefined'){
 } else {
   (async()=>{
     await loadClientes();
-    await loadHonorarios();
-    // loadGastos inline
-    const {data: gastosData} = await sb.from('gastos').select('*').order('fecha',{ascending:false});
-    gastos = (gastosData||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));
-    await loadPlantillasRec();
-    await loadServicios();
-    await loadSueldos();
-    await loadEmpleados();
-    populateSelectors();
+    await finInit();
     updateSubtipo();
     updatePlSubtipo();
     document.getElementById('h-fecha').value=todayStr();
