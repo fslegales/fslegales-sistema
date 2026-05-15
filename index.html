@@ -3816,6 +3816,23 @@ document.getElementById('login-pin').addEventListener('keydown',e=>{if(e.key==='
 
 // ── STATE ─────────────────────────────────────
 // clientes = allClientes (shared with tareas)
+const subtipos={
+  recurrente_mensual:[
+    {val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},
+    {val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},
+    {val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}
+  ],
+  recurrente_anual:[
+    {val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},
+    {val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},
+    {val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}
+  ],
+  no_recurrente:[
+    {val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},
+    {val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},
+    {val:'faltas',label:'Faltas'},{val:'amparo',label:'Amparo'},{val:'otro',label:'Otro'}
+  ]
+};
 let honorarios    = [];
 let gastos        = [];
 let plantillasRec = [];
