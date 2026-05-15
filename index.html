@@ -945,6 +945,31 @@ tr.clickable{cursor:pointer}
         </select>
       </div>
       <div class="card" style="padding:0;overflow:hidden"><div id="gastos-list"></div></div>
+
+      <!-- SECCIÓN REPARTO -->
+      <div style="margin-top:24px">
+        <div style="font-size:16px;font-weight:500;margin-bottom:4px">💰 Reparto de gastos</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:16px">División en partes iguales entre los 3 socios</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+          <!-- Gráfico torta por categoría -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)">Por categoría</div>
+            <canvas id="chart-gastos-cat" height="200"></canvas>
+            <div id="legend-gastos-cat" style="margin-top:12px;font-size:12px;line-height:1.9"></div>
+          </div>
+          <!-- Gráfico torta por quién pagó -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)">Por quién pagó</div>
+            <canvas id="chart-gastos-quien" height="200"></canvas>
+            <div id="legend-gastos-quien" style="margin-top:12px;font-size:12px;line-height:1.9"></div>
+          </div>
+          <!-- Tabla de reparto -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)">¿Quién le debe a quién?</div>
+            <div id="reparto-tabla"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ESTADO DE RESULTADOS -->
@@ -1162,6 +1187,14 @@ tr.clickable{cursor:pointer}
     <div class="form-row">
       <div class="form-group"><label>Monto ($)</label><input type="number" id="g-monto" placeholder="0.00" min="0"/></div>
       <div class="form-group"><label>Proveedor</label><input type="text" id="g-proveedor" placeholder="Nombre del proveedor"/></div>
+    </div>
+    <div class="form-group"><label>Pagado por</label>
+      <select id="g-pagado-por">
+        <option value="estudio">Estudio (general)</option>
+        <option value="Mariano">Mariano</option>
+        <option value="Santiago">Santiago</option>
+        <option value="Tomas">Tomás</option>
+      </select>
     </div>
     <div class="form-group"><label>Comprobante / Referencia</label><input type="text" id="g-comprobante" placeholder="Nº factura o referencia"/></div>
     <div class="form-group"><label>Notas</label><textarea id="g-notas" placeholder="Observaciones..."></textarea></div>
@@ -4950,6 +4983,7 @@ function resetGastoForm(){
   ['g-descripcion','g-monto','g-proveedor','g-comprobante','g-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('g-categoria').value='alquiler';
   document.getElementById('g-tipo').value='fijo_mensual';
+  document.getElementById('g-pagado-por').value='estudio';
   document.getElementById('g-error').style.display='none';
 }
 
@@ -4966,6 +5000,7 @@ function editarGasto(id){
   document.getElementById('g-proveedor').value=g.proveedor||'';
   document.getElementById('g-comprobante').value=g.comprobante||'';
   document.getElementById('g-notas').value=g.notas||'';
+  document.getElementById('g-pagado-por').value=g.pagado_por||'estudio';
   document.getElementById('g-error').style.display='none';
   openModal('modal-gasto');
 }
@@ -4989,6 +5024,7 @@ async function saveGasto(){
     proveedor:document.getElementById('g-proveedor').value,
     comprobante:document.getElementById('g-comprobante').value,
     notas:document.getElementById('g-notas').value,
+    pagado_por:document.getElementById('g-pagado-por').value,
   };
   let error;
   if(editingGId){
@@ -5012,22 +5048,118 @@ function renderGastos(){
   const el=document.getElementById('gastos-list');
   const total=list.reduce((s,g)=>s+g.monto,0);
   if(!list.length){el.innerHTML='<div class="empty-state">Sin gastos para los filtros.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Tipo</th><th>Proveedor</th><th>Comprobante</th><th>Monto</th><th></th></tr></thead><tbody>
+  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Tipo</th><th>Pagado por</th><th>Monto</th><th></th></tr></thead><tbody>
   ${list.map(g=>`<tr class="clickable" onclick="verDetalleG(${g.id})">
     <td class="monospace" style="font-size:11px">${fmtDate(g.fecha)}</td>
     <td style="font-size:12px;color:var(--t2)">${getCat(g.categoria)}</td>
     <td style="font-size:13px">${g.descripcion}</td>
     <td style="font-size:11px;color:var(--t3)">${g.tipo==='fijo_mensual'?'Fijo':g.tipo==='variable'?'Variable':'Anual'}</td>
-    <td style="font-size:12px;color:var(--t3)">${g.proveedor||'—'}</td>
-    <td class="monospace" style="font-size:11px;color:var(--t3)">${g.comprobante||'—'}</td>
+    <td style="font-size:12px;color:var(--t2)">${g.pagado_por||'Estudio'}</td>
     <td class="monospace" style="font-weight:600;color:var(--red)">${fmt$(g.monto)}</td>
     <td onclick="event.stopPropagation()"><div class="btn-group">
       <button class="btn btn-xs btn-ghost" onclick="editarGasto(${g.id})">Editar</button>
       <button class="btn btn-xs btn-danger" onclick="eliminarGasto(${g.id})">✕</button>
     </div></td>
   </tr>`).join('')}
-  <tr style="background:var(--s2)"><td colspan="7" style="font-weight:600">Total</td><td class="monospace" style="font-weight:700;color:var(--red)">${fmt$(total)}</td></tr>
+  <tr style="background:var(--s2)"><td colspan="6" style="font-weight:600">Total</td><td class="monospace" style="font-weight:700;color:var(--red)">${fmt$(total)}</td></tr>
   </tbody></table>`;
+  renderReparto(list);
+}
+
+let chartGastosCat=null, chartGastosQuien=null;
+
+function renderReparto(list){
+  const socios=['Mariano','Santiago','Tomas'];
+  const COLORS=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+
+  // Gráfico 1: por categoría
+  const catMap={};
+  list.forEach(g=>{ catMap[g.categoria]=(catMap[g.categoria]||0)+g.monto; });
+  const catLabels=Object.keys(catMap).map(k=>getCat(k));
+  const catData=Object.values(catMap);
+  if(chartGastosCat) chartGastosCat.destroy();
+  const ctx1=document.getElementById('chart-gastos-cat');
+  if(ctx1&&catData.length){
+    chartGastosCat=new Chart(ctx1.getContext('2d'),{type:'pie',data:{labels:catLabels,datasets:[{data:catData,backgroundColor:COLORS,borderWidth:2,borderColor:'#141414'}]},options:{plugins:{legend:{display:false}}}});
+    document.getElementById('legend-gastos-cat').innerHTML=catLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmt$(catData[i])}</strong></span>`).join('');
+  }
+
+  // Gráfico 2: por quién pagó
+  const quienMap={};
+  list.forEach(g=>{ const k=g.pagado_por||'Estudio'; quienMap[k]=(quienMap[k]||0)+g.monto; });
+  const quienLabels=Object.keys(quienMap);
+  const quienData=Object.values(quienMap);
+  if(chartGastosQuien) chartGastosQuien.destroy();
+  const ctx2=document.getElementById('chart-gastos-quien');
+  if(ctx2&&quienData.length){
+    chartGastosQuien=new Chart(ctx2.getContext('2d'),{type:'pie',data:{labels:quienLabels,datasets:[{data:quienData,backgroundColor:COLORS,borderWidth:2,borderColor:'#141414'}]},options:{plugins:{legend:{display:false}}}});
+    document.getElementById('legend-gastos-quien').innerHTML=quienLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmt$(quienData[i])}</strong></span>`).join('');
+  }
+
+  // Tabla de reparto: cuánto pagó cada uno vs cuánto debería haber pagado
+  const total=list.reduce((s,g)=>s+g.monto,0);
+  const porSocio=total/3;
+  const pagado={Mariano:0,Santiago:0,Tomas:0};
+  list.forEach(g=>{
+    const k=g.pagado_por;
+    if(pagado[k]!==undefined) pagado[k]+=g.monto;
+  });
+
+  // Saldo de cada uno (positivo = le deben, negativo = debe)
+  const saldo={};
+  socios.forEach(s=>{ saldo[s]=pagado[s]-porSocio; });
+
+  const repartoEl=document.getElementById('reparto-tabla');
+  if(!repartoEl) return;
+
+  let html=`<div style="margin-bottom:14px">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Total gastos: <strong style="color:var(--text)">${fmt$(total)}</strong> → <strong style="color:var(--blue)">${fmt$(porSocio)}</strong> por persona</div>
+    <table style="width:100%;font-size:13px">
+      <thead><tr>
+        <th style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 0;border-bottom:1px solid var(--border)">Socio</th>
+        <th style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 0;border-bottom:1px solid var(--border);text-align:right">Pagó</th>
+        <th style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 0;border-bottom:1px solid var(--border);text-align:right">Saldo</th>
+      </tr></thead>
+      <tbody>`;
+  socios.forEach(s=>{
+    const color=saldo[s]>0?'var(--green)':saldo[s]<0?'var(--red)':'var(--text3)';
+    const signo=saldo[s]>0?'+':'';
+    html+=`<tr>
+      <td style="padding:8px 0;border-bottom:1px solid var(--border)">${s}</td>
+      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace">${fmt$(pagado[s])}</td>
+      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:${color};font-weight:600">${signo}${fmt$(saldo[s])}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  // Quién le debe a quién
+  const deudores=socios.filter(s=>saldo[s]<0).map(s=>({nombre:s,debe:-saldo[s]}));
+  const acreedores=socios.filter(s=>saldo[s]>0).map(s=>({nombre:s,tiene:saldo[s]}));
+
+  if(deudores.length&&acreedores.length){
+    html+=`<div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">Transferencias a realizar</div>`;
+    deudores.forEach(d=>{
+      let restante=d.debe;
+      acreedores.forEach(a=>{
+        if(restante>0.01&&a.tiene>0.01){
+          const monto=Math.min(restante,a.tiene);
+          html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:6px;margin-bottom:6px;font-size:13px">
+            <span style="color:var(--red);font-weight:500">${d.nombre}</span>
+            <span style="color:var(--text3)">→</span>
+            <span style="color:var(--green);font-weight:500">${a.nombre}</span>
+            <span style="flex:1"></span>
+            <span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--text)">${fmt$(monto)}</span>
+          </div>`;
+          restante-=monto;
+          a.tiene-=monto;
+        }
+      });
+    });
+  } else {
+    html+=`<div style="font-size:13px;color:var(--text3);font-style:italic">Los gastos están equilibrados.</div>`;
+  }
+
+  repartoEl.innerHTML=html;
 }
 
 function verDetalleG(id){
