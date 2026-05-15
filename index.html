@@ -1677,6 +1677,7 @@ let vcCurrentClientId = null, vcAfipUnlocked = false;
 // ── Helpers ──────────────────────────────────
 const roleLabel = r => r==='supervisor'?'Guillermo':(empNames[r]||r);
 function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function fmtPeso(n){return "$"+Math.round(n||0).toLocaleString("es-AR");}
 function fmtDate(d){
   if(!d)return'—';
   // Soporta tanto 'YYYY-MM-DD' como objetos Date
@@ -1829,6 +1830,20 @@ async function finInit(){
   ]);
   populateSelectors();
   finLoaded = true;
+}
+async function reloadGastos(){
+  const {data} = await sb.from('gastos').select('*').order('fecha',{ascending:false});
+  gastos = (data||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));
+  populateSelectors();
+}
+async function loadHonorarios(){
+  const {data} = await sb.from('honorarios').select('*').order('fecha',{ascending:false});
+  honorarios = (data||[]).map(h=>({...h,monto:parseFloat(h.monto)||0,cobro_parcial:parseFloat(h.cobro_parcial)||0,monto_cobrado:parseFloat(h.monto_cobrado)||0,cobros_hist:h.cobros_hist||[]}));
+  populateSelectors();
+}
+async function loadPlantillasRec(){
+  const {data} = await sb.from('plantillas_rec').select('*').order('created_at');
+  plantillasRec = (data||[]).map(p=>({...p,monto:parseFloat(p.monto)||0}));
 }
 function empNav(el, paneId){
   document.querySelectorAll('#emp-sidebar .sidebar-item').forEach(i=>i.classList.remove('active'));
@@ -4964,7 +4979,7 @@ async function saveSueldo(){
     descripcion:`Sueldo ${nombre} — ${mesLabel(fecha.substring(0,7))}`,
     tipo:'fijo_mensual', monto, proveedor:'', comprobante:'', notas:'',
   }]);
-  await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
+  await reloadGastos();renderGastos();renderResumen();
 }
 
 async function eliminarSueldo(id){
@@ -5010,7 +5025,7 @@ function editarGasto(id){
 async function eliminarGasto(id){
   if(!confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.'))return;
   await sb.from('gastos').delete().eq('id',id);
-  await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
+  await reloadGastos();renderGastos();renderResumen();
 }
 
 async function saveGasto(){
@@ -5036,7 +5051,7 @@ async function saveGasto(){
     ({error}=await sb.from('gastos').insert([data]));
   }
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
-  closeModal('modal-gasto');await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
+  closeModal('modal-gasto');await reloadGastos();renderGastos();renderResumen();
 }
 
 function renderGastos(){
@@ -5070,7 +5085,6 @@ function renderGastos(){
 
 let chartGastosCat=null, chartGastosQuien=null;
 
-function fmtPeso(n){return "$"+Math.round(n||0).toLocaleString("es-AR");}
 function renderReparto(list){
   const socios=['Mariano','Santiago','Tomas'];
   const COLORS=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
