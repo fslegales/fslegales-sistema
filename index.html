@@ -3997,9 +3997,9 @@ function renderHonorarios(){
   el.innerHTML=`
     <div style="display:flex;gap:16px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--b1);flex-wrap:wrap">
       <span style="font-size:12px;color:var(--t3)">${list.length} registro${list.length!==1?'s':''}</span>
-      <span style="font-size:12px">Total: <strong class="monospace">${fmt$(totalMonto)}</strong></span>
-      <span style="font-size:12px;color:var(--green)">Cobrado: <strong class="monospace">${fmt$(totalCobrado)}</strong></span>
-      <span style="font-size:12px;color:var(--amber)">Pendiente: <strong class="monospace">${fmt$(totalMonto-totalCobrado)}</strong></span>
+      <span style="font-size:12px">Total: <strong class="monospace">${fmtPeso(totalMonto)}</strong></span>
+      <span style="font-size:12px;color:var(--green)">Cobrado: <strong class="monospace">${fmtPeso(totalCobrado)}</strong></span>
+      <span style="font-size:12px;color:var(--amber)">Pendiente: <strong class="monospace">${fmtPeso(totalMonto-totalCobrado)}</strong></span>
     </div>
     <table><thead><tr>
     <th>Nº Int.</th><th>Fecha</th><th>Cliente</th><th>Servicio</th>
@@ -4014,7 +4014,7 @@ function renderHonorarios(){
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${h.descripcion}</td>
       <td><span class="badge ${tp.cls}">${tp.label}</span></td>
       <td style="font-size:11px;color:var(--t3)">${getComp(h.comprobante)}${h.nro_arca?'<br/><span class="monospace" style="font-size:10px">'+h.nro_arca+'</span>':''}</td>
-      <td class="monospace" style="font-weight:600">${fmt$(h.monto)}</td>
+      <td class="monospace" style="font-weight:600">${fmtPeso(h.monto)}</td>
       <td><span class="badge ${est.cls}">${est.label}</span></td>
       <td onclick="event.stopPropagation()"><div class="btn-group">
         ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" onclick="abrirFacturar(${h.id})">Facturar</button>`:''}
@@ -4037,7 +4037,7 @@ function verDetalleH(id){
         <div class="detail-row"><span class="detail-label">CUIT</span><span class="detail-val monospace">${cli.cuit||'—'}</span></div>
         <div class="detail-row"><span class="detail-label">Fecha devengado</span><span class="detail-val">${fmtDate(h.fecha)}</span></div>
         <div class="detail-row"><span class="detail-label">Vencimiento cobro</span><span class="detail-val">${fmtDate(h.vencimiento)}</span></div>
-        <div class="detail-row"><span class="detail-label">Monto</span><span class="detail-val monospace" style="font-size:16px;font-weight:600">${fmt$(h.monto)}</span></div>
+        <div class="detail-row"><span class="detail-label">Monto</span><span class="detail-val monospace" style="font-size:16px;font-weight:600">${fmtPeso(h.monto)}</span></div>
       </div>
       <div>
         <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-val"><span class="badge ${tp.cls}">${tp.label}</span></span></div>
@@ -4071,7 +4071,7 @@ function abrirFacturar(id){
   const h=honorarios.find(x=>x.id===id);if(!h)return;
   const cli=getCliente(h.cliente_id);cobroId=id;
   document.getElementById('cobro-title').textContent='Facturar honorario';
-  document.getElementById('cobro-info').innerHTML=`<div><strong>${cli.nombre}</strong> · ${h.nro_interno}</div><div style="color:var(--t3)">${h.descripcion}</div><div style="margin-top:6px;font-size:15px;font-weight:600">${fmt$(h.monto)}</div>`;
+  document.getElementById('cobro-info').innerHTML=`<div><strong>${cli.nombre}</strong> · ${h.nro_interno}</div><div style="color:var(--t3)">${h.descripcion}</div><div style="margin-top:6px;font-size:15px;font-weight:600">${fmtPeso(h.monto)}</div>`;
   document.getElementById('cobro-factura-section').style.display='block';
   document.getElementById('cobro-pago-section').style.display='none';
   document.getElementById('cobro-tipo-comp').value=h.comprobante;
@@ -4089,7 +4089,7 @@ function updateCobroTipo(){
   const saldoPend=h.monto-(h.cobro_parcial||0);
   if(tipo==='parcial'){
     info.style.display='block';
-    info.textContent=`Cobro parcial: ingresá el monto recibido. Saldo pendiente: ${fmt$(saldoPend)}. El saldo restante quedará como deuda en la cuenta corriente.`;
+    info.textContent=`Cobro parcial: ingresá el monto recibido. Saldo pendiente: ${fmtPeso(saldoPend)}. El saldo restante quedará como deuda en la cuenta corriente.`;
     document.getElementById('cobro-monto').value='';
   } else {
     info.style.display='none';
@@ -4107,9 +4107,9 @@ function abrirCobro(id){
     <div><strong>${cli.nombre}</strong> · ${h.nro_interno}</div>
     <div style="color:var(--t3)">${h.descripcion}</div>
     <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
-      <div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Total factura</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace">${fmt$(h.monto)}</div></div>
-      ${cobradoParcial>0?`<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Ya cobrado</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmt$(cobradoParcial)}</div></div>`:''}
-      <div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Saldo pendiente</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--amber)">${fmt$(saldoPend)}</div></div>
+      <div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Total factura</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace">${fmtPeso(h.monto)}</div></div>
+      ${cobradoParcial>0?`<div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Ya cobrado</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmtPeso(cobradoParcial)}</div></div>`:''}
+      <div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Saldo pendiente</div><div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--amber)">${fmtPeso(saldoPend)}</div></div>
     </div>
     ${h.facturado?`<div style="margin-top:6px"><span class="badge b-facturado">FACTURADO</span> <span class="monospace" style="font-size:11px;color:var(--t3)">${h.nro_arca}</span></div>`:'<div style="margin-top:6px;font-size:12px;color:var(--amber)">⚠ Sin factura — se emitirá al cobrar si corresponde</div>'}`;
   document.getElementById('cobro-factura-section').style.display=h.facturado||h.comprobante==='informal'?'none':'block';
@@ -4119,7 +4119,7 @@ function abrirCobro(id){
   document.getElementById('cobro-monto').value=saldoPend;
   document.getElementById('cobro-tipo-pago').value='total';
   document.getElementById('cobro-parcial-info').style.display='none';
-  document.getElementById('cobro-hint') && (document.getElementById('cobro-monto-hint').textContent=`(saldo: ${fmt$(saldoPend)})`);
+  document.getElementById('cobro-hint') && (document.getElementById('cobro-monto-hint').textContent=`(saldo: ${fmtPeso(saldoPend)})`);
   document.getElementById('cobro-fecha').value=todayStr();
   document.getElementById('cobro-notas').value='';
   document.getElementById('cobro-error').style.display='none';
@@ -4146,7 +4146,7 @@ async function confirmarCobro(){
   if(montoCobrado<=0){err.textContent='Ingresá un monto a cobrar.';err.style.display='block';return;}
   const h=honorarios.find(x=>x.id===cobroId);if(!h)return;
   const saldoPend=h.monto-(h.cobro_parcial||0);
-  if(montoCobrado>saldoPend+0.01){err.textContent=`El monto no puede superar el saldo pendiente (${fmt$(saldoPend)}).`;err.style.display='block';return;}
+  if(montoCobrado>saldoPend+0.01){err.textContent=`El monto no puede superar el saldo pendiente (${fmtPeso(saldoPend)}).`;err.style.display='block';return;}
   const medio=document.getElementById('cobro-medio').value;
   const notas=document.getElementById('cobro-notas').value||'';
   let updateFact={};
@@ -4202,9 +4202,9 @@ function renderCCLista(){
   const totalCob=saldos.reduce((s,x)=>s+x.cob,0);
 
   let html=`<div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmt$(totalDev)}</div><div class="metric-label">Total devengado</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--green)">${fmt$(totalCob)}</div><div class="metric-label">Total cobrado</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:${totalSaldos>0?'var(--amber)':'var(--green)'}">${fmt$(totalSaldos)}</div><div class="metric-label">Saldo total pendiente</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmtPeso(totalDev)}</div><div class="metric-label">Total devengado</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--green)">${fmtPeso(totalCob)}</div><div class="metric-label">Total cobrado</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:${totalSaldos>0?'var(--amber)':'var(--green)'}">${fmtPeso(totalSaldos)}</div><div class="metric-label">Saldo total pendiente</div></div>
   </div>`;
 
   if(!saldos.length){
@@ -4233,9 +4233,9 @@ function renderCCLista(){
             ${x.pendCount>0?`<span style="font-size:11px;color:var(--t3)">${x.pendCount} pend.</span>`:''}
           </div>
         </div>
-        <span style="font-family:'DM Mono',monospace;font-size:12px;text-align:right;color:var(--t2)">${fmt$(x.dev)}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:12px;text-align:right;color:var(--green)">${fmt$(x.cob)}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:${x.saldo>0?'var(--amber)':'var(--green)'}">${fmt$(x.saldo)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;text-align:right;color:var(--t2)">${fmtPeso(x.dev)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;text-align:right;color:var(--green)">${fmtPeso(x.cob)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:${x.saldo>0?'var(--amber)':'var(--green)'}">${fmtPeso(x.saldo)}</span>
         <span style="color:var(--t3);font-size:14px;text-align:right">›</span>
       </div>`;
     }).join('')}
@@ -4311,9 +4311,9 @@ function renderCCDetalle(){
         <div style="font-size:11px;color:var(--t3);margin-top:4px">Mostrando: ${periodoLabel}</div>
       </div>
       <div style="display:flex;gap:24px;flex-wrap:wrap">
-        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Devengado (período)</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace">${fmt$(totDevP)}</div></div>
-        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Cobrado (período)</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace;color:var(--green)">${fmt$(totCobP)}</div></div>
-        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Saldo total pendiente</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace;color:${saldo>0?'var(--amber)':'var(--green)'}">${fmt$(saldo)}</div></div>
+        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Devengado (período)</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace">${fmtPeso(totDevP)}</div></div>
+        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Cobrado (período)</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace;color:var(--green)">${fmtPeso(totCobP)}</div></div>
+        <div style="text-align:right"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Saldo total pendiente</div><div style="font-size:20px;font-weight:300;font-family:'DM Mono',monospace;color:${saldo>0?'var(--amber)':'var(--green)'}">${fmtPeso(saldo)}</div></div>
       </div>
     </div>
   </div>`;
@@ -4347,9 +4347,9 @@ function renderCCDetalle(){
       <div class="cc-row" onclick="verDetalleH(${m.id})">
         <span class="cc-date">${fmtDate(m.fecha)}</span>
         <div><div class="cc-concepto">${m.concepto}</div><div class="cc-sub">${m.ref} · ${m.detalle.substring(0,38)}${m.detalle.length>38?'…':''}</div></div>
-        <span class="cc-monto ${m.tipo==='credito'?'pos':'neg'}">${m.tipo==='credito'?'+':''}${fmt$(Math.abs(m.monto))}</span>
+        <span class="cc-monto ${m.tipo==='credito'?'pos':'neg'}">${m.tipo==='credito'?'+':''}${fmtPeso(Math.abs(m.monto))}</span>
         <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);text-align:right">${m.factura||'—'}</span>
-        <span class="cc-saldo" style="color:${m.saldo<=0?'var(--green)':'var(--amber)'}">${fmt$(m.saldo)}</span>
+        <span class="cc-saldo" style="color:${m.saldo<=0?'var(--green)':'var(--amber)'}">${fmtPeso(m.saldo)}</span>
       </div>`).join(''):'<div class="empty-state">Sin movimientos en el período.</div>'}
     </div>`;
   } else {
@@ -4367,9 +4367,9 @@ function renderCCDetalle(){
         <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.descripcion}</td>
         <td style="font-size:12px">${getComp(h.comprobante)}</td>
         <td class="monospace" style="font-size:11px;color:var(--t3)">${h.nro_arca||'—'}</td>
-        <td class="monospace" style="font-weight:600">${fmt$(h.monto)}</td>
-        <td class="monospace" style="color:var(--green)">${cobrado>0?fmt$(cobrado):'—'}</td>
-        <td class="monospace" style="color:${saldoH>0?'var(--amber)':'var(--green)'}">${saldoH>0?fmt$(saldoH):'✓'}</td>
+        <td class="monospace" style="font-weight:600">${fmtPeso(h.monto)}</td>
+        <td class="monospace" style="color:var(--green)">${cobrado>0?fmtPeso(cobrado):'—'}</td>
+        <td class="monospace" style="color:${saldoH>0?'var(--amber)':'var(--green)'}">${saldoH>0?fmtPeso(saldoH):'✓'}</td>
         <td><span class="badge ${est.cls}">${est.label}</span></td>
         <td onclick="event.stopPropagation()"><div class="btn-group">
           ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" onclick="abrirFacturar(${h.id})">Facturar</button>`:''}
@@ -4751,14 +4751,14 @@ function renderRecurrentes(){
 
   let html=`<div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
     <div class="metric"><div class="metric-val">${plantillasRec.length}</div><div class="metric-label">Plantillas totales</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmt$(totMensual)}</div><div class="metric-label">Facturación mensual estimada</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmtPeso(totMensual)}</div><div class="metric-label">Facturación mensual estimada</div></div>
     <div class="metric"><div class="metric-val" style="color:var(--green)">${autoCount}</div><div class="metric-label">Con factura automática</div></div>
   </div>`;
 
   if(srvF||subF){
     html+=`<div style="display:flex;gap:16px;padding:8px 14px;background:var(--s2);border-radius:var(--r);margin-bottom:12px;font-size:12px;flex-wrap:wrap">
       <span>${lista.length} plantilla${lista.length!==1?'s':''}</span>
-      <span>Total mensual filtrado: <strong class="monospace">${fmt$(totFiltrado)}</strong></span>
+      <span>Total mensual filtrado: <strong class="monospace">${fmtPeso(totFiltrado)}</strong></span>
     </div>`;
   }
 
@@ -4788,7 +4788,7 @@ function renderRecurrentes(){
       <td><span class="badge ${tp.cls}">${tp.label}</span></td>
       <td style="font-size:12px;color:var(--t3)">Día ${p.dia}</td>
       <td style="font-size:13px">${cli.nombre}</td>
-      <td class="monospace" style="font-weight:600">${fmt$(p.monto)}</td>
+      <td class="monospace" style="font-weight:600">${fmtPeso(p.monto)}</td>
       <td style="font-size:11px;color:var(--t3)">${getComp(p.comprobante)}</td>
       <td class="monospace" style="font-size:12px">${ultima?fmtDate(ultima.fecha):'—'}</td>
       <td class="monospace" style="font-size:12px;color:${proxima?'var(--blue)':'var(--t3)'}">${proxima?fmtDate(proxima):'—'}</td>
@@ -4866,7 +4866,7 @@ function renderSueldosGrid(){
         <div style="font-size:13px;font-weight:600;margin-bottom:6px;padding-right:20px">${e.nombre}</div>
         <div style="font-size:11px;color:var(--t3);margin-bottom:4px">${pagos.length} pago${pagos.length!==1?'s':''} registrado${pagos.length!==1?'s':''}</div>
         ${ultimo
-          ?`<div style="font-size:12px;color:var(--t2)">Último: <span class="monospace">${fmt$(ultimo.monto)}</span></div>
+          ?`<div style="font-size:12px;color:var(--t2)">Último: <span class="monospace">${fmtPeso(ultimo.monto)}</span></div>
              <div style="font-size:11px;color:var(--t3)">${fmtDate(ultimo.fecha)}</div>`
           :`<div style="font-size:12px;color:var(--t3)">Sin pagos registrados</div>`}
       </div>
@@ -4898,8 +4898,8 @@ function renderHistorialSueldo(nombre){
 
   let html=`<div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
     <div class="metric"><div class="metric-val">${pagos.length}</div><div class="metric-label">Pagos registrados</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--red)">${fmt$(total)}</div><div class="metric-label">Total pagado</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmt$(promedio)}</div><div class="metric-label">Promedio mensual</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--red)">${fmtPeso(total)}</div><div class="metric-label">Total pagado</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmtPeso(promedio)}</div><div class="metric-label">Promedio mensual</div></div>
   </div>`;
 
   if(!pagos.length){
@@ -4913,7 +4913,7 @@ function renderHistorialSueldo(nombre){
   ${pagos.map(p=>`<tr>
     <td class="monospace" style="font-size:12px">${fmtDate(p.fecha)}</td>
     <td style="font-size:13px">${mesLabel(p.fecha.substring(0,7))}</td>
-    <td class="monospace" style="font-weight:600;color:var(--red)">${fmt$(p.monto)}</td>
+    <td class="monospace" style="font-weight:600;color:var(--red)">${fmtPeso(p.monto)}</td>
     <td style="font-size:12px;color:var(--t3)">${p.notas||'—'}</td>
     <td><button class="btn btn-xs btn-danger" onclick="eliminarSueldo(${p.id})">✕</button></td>
   </tr>`).join('')}
@@ -4962,7 +4962,7 @@ async function saveSueldo(){
     descripcion:`Sueldo ${nombre} — ${mesLabel(fecha.substring(0,7))}`,
     tipo:'fijo_mensual', monto, proveedor:'', comprobante:'', notas:'',
   }]);
-  await loadGastos();renderGastos();renderResumen();
+  await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
 }
 
 async function eliminarSueldo(id){
@@ -5008,7 +5008,7 @@ function editarGasto(id){
 async function eliminarGasto(id){
   if(!confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.'))return;
   await sb.from('gastos').delete().eq('id',id);
-  await loadGastos();renderGastos();renderResumen();
+  await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
 }
 
 async function saveGasto(){
@@ -5034,7 +5034,7 @@ async function saveGasto(){
     ({error}=await sb.from('gastos').insert([data]));
   }
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
-  closeModal('modal-gasto');await loadGastos();renderGastos();renderResumen();
+  closeModal('modal-gasto');await finInit();gastos=(await sb.from("gastos").select("*").order("fecha",{ascending:false})).data||[];gastos=gastos.map(g=>({...g,monto:parseFloat(g.monto)||0}));renderGastos();renderResumen();
 }
 
 function renderGastos(){
@@ -5055,19 +5055,20 @@ function renderGastos(){
     <td style="font-size:13px">${g.descripcion}</td>
     <td style="font-size:11px;color:var(--t3)">${g.tipo==='fijo_mensual'?'Fijo':g.tipo==='variable'?'Variable':'Anual'}</td>
     <td style="font-size:12px;color:var(--t2)">${g.pagado_por||'Estudio'}</td>
-    <td class="monospace" style="font-weight:600;color:var(--red)">${fmt$(g.monto)}</td>
+    <td class="monospace" style="font-weight:600;color:var(--red)">${("$"+Math.round(g.monto).toLocaleString("es-AR"))}</td>
     <td onclick="event.stopPropagation()"><div class="btn-group">
       <button class="btn btn-xs btn-ghost" onclick="editarGasto(${g.id})">Editar</button>
       <button class="btn btn-xs btn-danger" onclick="eliminarGasto(${g.id})">✕</button>
     </div></td>
   </tr>`).join('')}
-  <tr style="background:var(--s2)"><td colspan="6" style="font-weight:600">Total</td><td class="monospace" style="font-weight:700;color:var(--red)">${fmt$(total)}</td></tr>
+  <tr style="background:var(--s2)"><td colspan="6" style="font-weight:600">Total</td><td class="monospace" style="font-weight:700;color:var(--red)">${("$"+Math.round(total).toLocaleString("es-AR"))}</td></tr>
   </tbody></table>`;
   renderReparto(list);
 }
 
 let chartGastosCat=null, chartGastosQuien=null;
 
+function fmtPeso(n){return "$"+Math.round(n||0).toLocaleString("es-AR");}
 function renderReparto(list){
   const socios=['Mariano','Santiago','Tomas'];
   const COLORS=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
@@ -5081,7 +5082,7 @@ function renderReparto(list){
   const ctx1=document.getElementById('chart-gastos-cat');
   if(ctx1&&catData.length){
     chartGastosCat=new Chart(ctx1.getContext('2d'),{type:'pie',data:{labels:catLabels,datasets:[{data:catData,backgroundColor:COLORS,borderWidth:2,borderColor:'#141414'}]},options:{plugins:{legend:{display:false}}}});
-    document.getElementById('legend-gastos-cat').innerHTML=catLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmt$(catData[i])}</strong></span>`).join('');
+    document.getElementById('legend-gastos-cat').innerHTML=catLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmtPeso(catData[i])}</strong></span>`).join('');
   }
 
   // Gráfico 2: por quién pagó
@@ -5093,7 +5094,7 @@ function renderReparto(list){
   const ctx2=document.getElementById('chart-gastos-quien');
   if(ctx2&&quienData.length){
     chartGastosQuien=new Chart(ctx2.getContext('2d'),{type:'pie',data:{labels:quienLabels,datasets:[{data:quienData,backgroundColor:COLORS,borderWidth:2,borderColor:'#141414'}]},options:{plugins:{legend:{display:false}}}});
-    document.getElementById('legend-gastos-quien').innerHTML=quienLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmt$(quienData[i])}</strong></span>`).join('');
+    document.getElementById('legend-gastos-quien').innerHTML=quienLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmtPeso(quienData[i])}</strong></span>`).join('');
   }
 
   // Tabla de reparto: cuánto pagó cada uno vs cuánto debería haber pagado
@@ -5113,7 +5114,7 @@ function renderReparto(list){
   if(!repartoEl) return;
 
   let html=`<div style="margin-bottom:14px">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Total gastos: <strong style="color:var(--text)">${fmt$(total)}</strong> → <strong style="color:var(--blue)">${fmt$(porSocio)}</strong> por persona</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Total gastos: <strong style="color:var(--text)">${fmtPeso(total)}</strong> → <strong style="color:var(--blue)">${fmtPeso(porSocio)}</strong> por persona</div>
     <table style="width:100%;font-size:13px">
       <thead><tr>
         <th style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:6px 0;border-bottom:1px solid var(--border)">Socio</th>
@@ -5126,8 +5127,8 @@ function renderReparto(list){
     const signo=saldo[s]>0?'+':'';
     html+=`<tr>
       <td style="padding:8px 0;border-bottom:1px solid var(--border)">${s}</td>
-      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace">${fmt$(pagado[s])}</td>
-      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:${color};font-weight:600">${signo}${fmt$(saldo[s])}</td>
+      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace">${fmtPeso(pagado[s])}</td>
+      <td style="padding:8px 0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:${color};font-weight:600">${signo}${fmtPeso(saldo[s])}</td>
     </tr>`;
   });
   html+=`</tbody></table></div>`;
@@ -5148,7 +5149,7 @@ function renderReparto(list){
             <span style="color:var(--text3)">→</span>
             <span style="color:var(--green);font-weight:500">${a.nombre}</span>
             <span style="flex:1"></span>
-            <span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--text)">${fmt$(monto)}</span>
+            <span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--text)">${fmtPeso(monto)}</span>
           </div>`;
           restante-=monto;
           a.tiene-=monto;
@@ -5169,7 +5170,7 @@ function verDetalleG(id){
     <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-val monospace">${fmtDate(g.fecha)}</span></div>
     <div class="detail-row"><span class="detail-label">Categoría</span><span class="detail-val">${getCat(g.categoria)}</span></div>
     <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-val">${g.tipo==='fijo_mensual'?'Fijo mensual':g.tipo==='variable'?'Variable':'Anual / Único'}</span></div>
-    <div class="detail-row"><span class="detail-label">Monto</span><span class="detail-val monospace" style="font-size:16px;font-weight:600;color:var(--red)">${fmt$(g.monto)}</span></div>
+    <div class="detail-row"><span class="detail-label">Monto</span><span class="detail-val monospace" style="font-size:16px;font-weight:600;color:var(--red)">${fmtPeso(g.monto)}</span></div>
     <div class="detail-row"><span class="detail-label">Proveedor</span><span class="detail-val">${g.proveedor||'—'}</span></div>
     <div class="detail-row"><span class="detail-label">Comprobante</span><span class="detail-val monospace">${g.comprobante||'—'}</span></div>
     ${g.notas?`<div style="margin-top:10px;background:var(--s2);border-radius:var(--r);padding:12px;font-size:13px;color:var(--t2);font-style:italic">${g.notas}</div>`:''}
@@ -5195,24 +5196,24 @@ function renderResumen(){
   const totPend=pend.reduce((s,h)=>s+h.monto,0);
 
   document.getElementById('resumen-metrics').innerHTML=`
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmt$(totDev)}</div><div class="metric-label">Devengado del mes</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--green)">${fmt$(totCob)}</div><div class="metric-label">Cobrado del mes</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--red)">${fmt$(totGas)}</div><div class="metric-label">Gastos del mes</div></div>
-    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:${res>=0?'var(--green)':'var(--red)'}">${fmt$(res)}</div><div class="metric-label">Resultado neto</div></div>`;
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px">${fmtPeso(totDev)}</div><div class="metric-label">Devengado del mes</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--green)">${fmtPeso(totCob)}</div><div class="metric-label">Cobrado del mes</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:var(--red)">${fmtPeso(totGas)}</div><div class="metric-label">Gastos del mes</div></div>
+    <div class="metric"><div class="metric-val monospace" style="font-size:18px;color:${res>=0?'var(--green)':'var(--red)'}">${fmtPeso(res)}</div><div class="metric-label">Resultado neto</div></div>`;
 
   const recM=hM.filter(h=>h.tipo==='recurrente_mensual').reduce((s,h)=>s+h.monto,0);
   const recA=hM.filter(h=>h.tipo==='recurrente_anual').reduce((s,h)=>s+h.monto,0);
   const noR=hM.filter(h=>h.tipo==='no_recurrente').reduce((s,h)=>s+h.monto,0);
   document.getElementById('resumen-ingresos').innerHTML=`
-    <div class="er-row"><span class="er-label">Recurrentes mensuales</span><span class="er-val pos">${fmt$(recM)}</span></div>
-    <div class="er-row"><span class="er-label">Recurrentes anuales</span><span class="er-val pos">${fmt$(recA)}</span></div>
-    <div class="er-row"><span class="er-label">No recurrentes</span><span class="er-val pos">${fmt$(noR)}</span></div>
-    <div class="er-row subtotal"><span class="er-label">Total devengado</span><span class="er-val pos">${fmt$(totDev)}</span></div>`;
+    <div class="er-row"><span class="er-label">Recurrentes mensuales</span><span class="er-val pos">${fmtPeso(recM)}</span></div>
+    <div class="er-row"><span class="er-label">Recurrentes anuales</span><span class="er-val pos">${fmtPeso(recA)}</span></div>
+    <div class="er-row"><span class="er-label">No recurrentes</span><span class="er-val pos">${fmtPeso(noR)}</span></div>
+    <div class="er-row subtotal"><span class="er-label">Total devengado</span><span class="er-val pos">${fmtPeso(totDev)}</span></div>`;
 
   const catT={};gM.forEach(g=>{catT[g.categoria]=(catT[g.categoria]||0)+g.monto;});
   document.getElementById('resumen-egresos').innerHTML=
-    Object.entries(catT).map(([c,t])=>`<div class="er-row"><span class="er-label">${getCat(c)}</span><span class="er-val neg">${fmt$(t)}</span></div>`).join('')+
-    `<div class="er-row subtotal"><span class="er-label">Total gastos</span><span class="er-val neg">${fmt$(totGas)}</span></div>`;
+    Object.entries(catT).map(([c,t])=>`<div class="er-row"><span class="er-label">${getCat(c)}</span><span class="er-val neg">${fmtPeso(t)}</span></div>`).join('')+
+    `<div class="er-row subtotal"><span class="er-label">Total gastos</span><span class="er-val neg">${fmtPeso(totGas)}</span></div>`;
 
   document.getElementById('resumen-pendientes').innerHTML=pend.length?`
     <table><thead><tr><th>Cliente</th><th>Descripción</th><th>Vcto.</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody>
@@ -5220,11 +5221,11 @@ function renderResumen(){
       return`<tr><td style="font-size:13px">${cli.nombre}</td>
         <td style="font-size:12px;color:var(--t2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.descripcion}</td>
         <td class="monospace" style="font-size:11px">${fmtDate(h.vencimiento)}</td>
-        <td class="monospace" style="font-weight:600">${fmt$(h.monto)}</td>
+        <td class="monospace" style="font-weight:600">${fmtPeso(h.monto)}</td>
         <td><span class="badge ${est.cls}">${est.label}</span></td>
         <td><button class="btn btn-xs btn-amber" onclick="abrirCobro(${h.id})">Cobrar</button></td>
       </tr>`;}).join('')}
-    <tr style="background:var(--s2)"><td colspan="3" style="font-weight:600;font-size:13px">Total pendiente</td><td class="monospace" style="font-weight:700;color:var(--amber)">${fmt$(totPend)}</td><td colspan="2"></td></tr>
+    <tr style="background:var(--s2)"><td colspan="3" style="font-weight:600;font-size:13px">Total pendiente</td><td class="monospace" style="font-weight:700;color:var(--amber)">${fmtPeso(totPend)}</td><td colspan="2"></td></tr>
     </tbody></table>`:'<div class="empty-state">Sin honorarios pendientes 🎉</div>';
 }
 
@@ -5249,12 +5250,12 @@ function renderEstadoResultados(){
   const totGas=gL.reduce((s,g)=>s+g.monto,0);
   const res=totIng-totGas;
   const margen=totIng>0?((res/totIng)*100).toFixed(1):0;
-  const bar=(v,max,col)=>`<div class="bar-wrap"><span class="monospace" style="font-size:12px;min-width:90px;text-align:right">${fmt$(v)}</span><div class="bar-bg"><div class="bar-fill" style="width:${max>0?Math.round(v/max*100):0}%;background:${col}"></div></div></div>`;
+  const bar=(v,max,col)=>`<div class="bar-wrap"><span class="monospace" style="font-size:12px;min-width:90px;text-align:right">${fmtPeso(v)}</span><div class="bar-bg"><div class="bar-fill" style="width:${max>0?Math.round(v/max*100):0}%;background:${col}"></div></div></div>`;
   const erSection=(title,items,sub,maxV,col)=>{
-    if(!Object.keys(items).length)return`<div class="er-section"><div class="er-section-title">${title}</div><div style="color:var(--t3);font-size:12px;padding:6px 0">Sin registros en el período.</div><div class="er-row subtotal"><span class="er-label">Subtotal</span><span class="er-val pos">${fmt$(0)}</span></div></div>`;
+    if(!Object.keys(items).length)return`<div class="er-section"><div class="er-section-title">${title}</div><div style="color:var(--t3);font-size:12px;padding:6px 0">Sin registros en el período.</div><div class="er-row subtotal"><span class="er-label">Subtotal</span><span class="er-val pos">${fmtPeso(0)}</span></div></div>`;
     return`<div class="er-section"><div class="er-section-title">${title}</div>
     ${Object.entries(items).map(([k,v])=>`<div class="er-row"><span class="er-label" style="font-size:12px">${getSubLabel(sub,k)}</span>${bar(v,maxV,col)}</div>`).join('')}
-    <div class="er-row subtotal"><span class="er-label">Subtotal</span><span class="er-val pos">${fmt$(Object.values(items).reduce((a,b)=>a+b,0))}</span></div></div>`;
+    <div class="er-row subtotal"><span class="er-label">Subtotal</span><span class="er-val pos">${fmtPeso(Object.values(items).reduce((a,b)=>a+b,0))}</span></div></div>`;
   };
   document.getElementById('er-content').innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -5264,20 +5265,20 @@ function renderEstadoResultados(){
         ${erSection('Recurrentes mensuales',recMsub,'recurrente_mensual',totRM,'var(--green)')}
         ${erSection('Recurrentes anuales',recAsub,'recurrente_anual',totRA,'var(--blue)')}
         ${erSection('No recurrentes',noRsub,'no_recurrente',totNR,'var(--amber)')}
-        <div class="er-row total"><span class="er-label">TOTAL INGRESOS</span><span class="er-val pos">${fmt$(totIng)}</span></div>
+        <div class="er-row total"><span class="er-label">TOTAL INGRESOS</span><span class="er-val pos">${fmtPeso(totIng)}</span></div>
       </div>
     </div>
     <div>
       <div class="card" style="margin-bottom:16px">
         <div class="card-title">Egresos</div>
         ${Object.entries(catT).map(([c,v])=>`<div class="er-row"><span class="er-label">${getCat(c)}</span>${bar(v,totGas,'var(--red)')}</div>`).join('')}
-        <div class="er-row total"><span class="er-label">TOTAL EGRESOS</span><span class="er-val neg">${fmt$(totGas)}</span></div>
+        <div class="er-row total"><span class="er-label">TOTAL EGRESOS</span><span class="er-val neg">${fmtPeso(totGas)}</span></div>
       </div>
       <div class="card" style="background:${res>=0?'#0d2b1a':'#2a0f0f'};border-color:${res>=0?'#1a4a2a':'#5a1f1f'}">
         <div class="card-title">Resultado</div>
-        <div class="er-row total"><span class="er-label">Resultado neto</span><span class="er-val ${res>=0?'pos':'neg'}" style="font-size:22px;font-weight:300">${fmt$(res)}</span></div>
+        <div class="er-row total"><span class="er-label">Resultado neto</span><span class="er-val ${res>=0?'pos':'neg'}" style="font-size:22px;font-weight:300">${fmtPeso(res)}</span></div>
         <div class="er-row"><span class="er-label">Margen sobre ingresos</span><span class="er-val ${res>=0?'pos':'neg'}" style="font-size:15px">${margen}%</span></div>
-        <div class="er-row"><span class="er-label">Cobrado / Devengado</span><span class="er-val neu">${fmt$(hL.filter(h=>h.cobrado).reduce((s,h)=>s+h.monto,0))} / ${fmt$(totIng)}</span></div>
+        <div class="er-row"><span class="er-label">Cobrado / Devengado</span><span class="er-val neu">${fmtPeso(hL.filter(h=>h.cobrado).reduce((s,h)=>s+h.monto,0))} / ${fmtPeso(totIng)}</span></div>
       </div>
     </div>
   </div>`;
@@ -5635,7 +5636,9 @@ if(typeof supabase==='undefined'){
   (async()=>{
     await loadClientes();
     await loadHonorarios();
-    await loadGastos();
+    // loadGastos inline
+    const {data: gastosData} = await sb.from('gastos').select('*').order('fecha',{ascending:false});
+    gastos = (gastosData||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));
     await loadPlantillasRec();
     await loadServicios();
     await loadSueldos();
