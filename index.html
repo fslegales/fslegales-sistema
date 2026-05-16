@@ -1658,10 +1658,12 @@ tr.clickable{cursor:pointer}
 <script>
 document.addEventListener('click',function(e){
   var d=e.target.closest('[data-gid]');
-  if(d){if(typeof eliminarGasto==='function')eliminarGasto(d.dataset.gid);return;}
+  if(d&&window.eliminarGasto){window.eliminarGasto(d.dataset.gid);return;}
   var ed=e.target.closest('[data-gedit]');
-  if(ed){if(typeof editarGasto==='function')editarGasto(ed.dataset.gedit);return;}
+  if(ed&&window.editarGasto){window.editarGasto(ed.dataset.gedit);return;}
 });
+</script>
+<script>
 //  CONFIGURACION SUPABASE
 const SUPABASE_URL      = 'https://rofbahscccdbxbwimjzt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY';
