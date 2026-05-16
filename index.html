@@ -5003,7 +5003,6 @@ function editarGasto(id){
 }
 
 async function eliminarGasto(id){
-  if(!confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.'))return;
   await sb.from('gastos').delete().eq('id',id);
   await reloadGastos();renderGastos();renderResumen();
 }
