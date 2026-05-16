@@ -1656,11 +1656,13 @@ tr.clickable{cursor:pointer}
 </div>
 
 <script>
-document.addEventListener('click',function(e){
-  var d=e.target.closest('[data-gid]');
-  if(d&&window.eliminarGasto){window.eliminarGasto(d.dataset.gid);return;}
-  var ed=e.target.closest('[data-gedit]');
-  if(ed&&window.editarGasto){window.editarGasto(ed.dataset.gedit);return;}
+document.addEventListener('DOMContentLoaded',function(){
+  document.addEventListener('click',function(e){
+    var d=e.target.closest('[data-gid]');
+    if(d&&window.eliminarGasto){window.eliminarGasto(d.dataset.gid);return;}
+    var ed=e.target.closest('[data-gedit]');
+    if(ed&&window.editarGasto){window.editarGasto(ed.dataset.gedit);return;}
+  });
 });
 </script>
 <script>
@@ -5041,6 +5043,15 @@ async function saveGasto(){
   closeModal('modal-gasto');await reloadGastos();renderGastos();renderResumen();
 }
 
+
+function bindGastoButtons(){
+  document.querySelectorAll('[data-gid]').forEach(function(b){
+    b.onclick=function(){eliminarGasto(b.dataset.gid);};
+  });
+  document.querySelectorAll('[data-gedit]').forEach(function(b){
+    b.onclick=function(){editarGasto(b.dataset.gedit);};
+  });
+}
 function renderGastos(){
   const mesF=document.getElementById('fil-g-mes').value;
   const catF=document.getElementById('fil-g-cat').value;
@@ -5068,6 +5079,7 @@ function renderGastos(){
   <tr style="background:var(--s2)"><td colspan="6" style="font-weight:600">Total</td><td class="monospace" style="font-weight:700;color:var(--red)">${("$"+Math.round(total).toLocaleString("es-AR"))}</td></tr>
   </tbody></table>`;
   renderReparto(list);
+  setTimeout(bindGastoButtons,50);
 }
 
 let chartGastosCat=null, chartGastosQuien=null;
