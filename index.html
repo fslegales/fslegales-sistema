@@ -1656,14 +1656,10 @@ tr.clickable{cursor:pointer}
 </div>
 
 <script>
-// ==============================================
 //  CONFIGURACION SUPABASE
-// ==============================================
 const SUPABASE_URL      = 'https://rofbahscccdbxbwimjzt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY';
 const AFIP_PIN          = '9999'; // PIN extra para ver datos AFIP en ficha cliente
-// ==============================================
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -3796,13 +3792,7 @@ document.getElementById('login-pin').addEventListener('keydown',e=>{if(e.key==='
 
 // -- MODULO FINANZAS --------------------------
 
-// ==============================================
 //  SUPABASE
-// ==============================================
-
-
-
-
 // -- STATE -------------------------------------
 // clientes = allClientes (shared with tareas)
 const subtipos={recurrente_mensual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],recurrente_anual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],no_recurrente:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'amparo',label:'Amparo'},{val:'otro',label:'Otro'}]};
@@ -5651,10 +5641,7 @@ if(typeof supabase==='undefined'){
 
 
 
-// ============================================================
 // FALTAS PROVINCIALES
-// ============================================================
-
 function renderFaltasProv(containerId){
   const cont = document.getElementById(containerId);
   if(!cont) return;
@@ -5878,10 +5865,7 @@ function fpAgregarActa(){
   document.getElementById('fp-pv-actas-list').appendChild(div);
 }
 
-// ============================================================
 // FALTAS MUNICIPALES
-// ============================================================
-
 function renderFaltasMun(containerId){
   const cont = document.getElementById(containerId);
   if(!cont) return;
@@ -6021,10 +6005,7 @@ function fmTab(tab){
   });
 }
 
-// ============================================================
 // GENERACION PDF ? FALTAS PROVINCIALES
-// ============================================================
-
 async function generarFaltaPDF(tipo){
   if(typeof PDFLib === 'undefined'){ alert('Error: librería PDF no cargó. Recargá la página.'); return; }
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
@@ -6223,10 +6204,7 @@ async function generarFaltaPDF(tipo){
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
-// ============================================================
 // GENERACION PDF ? FALTAS MUNICIPALES
-// ============================================================
-
 async function generarFaltaMunPDF(tipo){
   if(typeof PDFLib === 'undefined'){ alert('Error: librería PDF no cargó. Recargá la página.'); return; }
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
