@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -90,6 +89,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;font-size:15px}
 .btn-dark:active{opacity:.8}
 .btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
 .btn-ghost:active{background:var(--surface2)}
+.btn-primary{background:var(--blue-mid);color:#fff;border-color:var(--blue-mid)}
+.btn-primary:active{opacity:.85}
 .btn-danger{background:transparent;border-color:#7f1d1d;color:var(--red)}
 .btn-danger:active{background:var(--red-bg)}
 .btn-sm{padding:7px 12px;font-size:13px}
@@ -1654,15 +1655,14 @@ tr.clickable{cursor:pointer}
   </div>
 </div>
 
-<script type="text/javascript">
-
-// ══════════════════════════════════════════════
-//  CONFIGURACIÓN SUPABASE
-// ══════════════════════════════════════════════
+<script>
+// ==============================================
+//  CONFIGURACION SUPABASE
+// ==============================================
 const SUPABASE_URL      = 'https://rofbahscccdbxbwimjzt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY';
 const AFIP_PIN          = '9999'; // PIN extra para ver datos AFIP en ficha cliente
-// ══════════════════════════════════════════════
+// ==============================================
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1674,7 +1674,7 @@ let editingId = null, editingPlantillaId = null, editingClientId = null;
 let openThreads = {}, threadComments = {};
 let vcCurrentClientId = null, vcAfipUnlocked = false;
 
-// ── Helpers ──────────────────────────────────
+// -- Helpers ----------------------------------
 const roleLabel = r => r==='supervisor'?'Guillermo':(empNames[r]||r);
 function todayStr(){ return new Date().toISOString().split('T')[0]; }
 function fmtPeso(n){return "$"+Math.round(n||0).toLocaleString("es-AR");}
@@ -1717,7 +1717,7 @@ const condClass = c => ({RI:'cond-ri',Monotributo:'cond-mono',Exento:'cond-exent
 function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
 
-// ── Config DB ─────────────────────────────────
+// -- Config DB ---------------------------------
 async function loadConfig(){
   try{
     const{data,error}=await sb.from('config').select('*').eq('id',1).single();
@@ -1751,7 +1751,7 @@ function updateLoginSelect(){
     <option value="emp3">${empNames.emp3||'Empleado 3'}</option>`;
 }
 
-// ── Login ─────────────────────────────────────
+// -- Login -------------------------------------
 async function doLogin(){
   const role=document.getElementById('login-role').value, pin=document.getElementById('login-pin').value;
   const err=document.getElementById('login-error'); err.style.display='none';
@@ -1768,7 +1768,7 @@ function logout(){
   vcCurrentClientId=null; vcAfipUnlocked=false;
   document.querySelectorAll('.app').forEach(a=>a.classList.remove('active'));
   document.getElementById('app-login').style.display='flex';
-  // Resetear sidebars al primer ítem
+  // Resetear sidebars al primer item
   document.querySelectorAll('#sv-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
   document.querySelectorAll('#emp-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
   document.querySelectorAll('#app-supervisor .tab-pane').forEach((p,i)=>p.classList.toggle('active',i===0));
@@ -1777,7 +1777,7 @@ function logout(){
   empPanes.forEach((p,i)=>p.classList.toggle('active',i===0));
 }
 
-// ── Data ──────────────────────────────────────
+// -- Data --------------------------------------
 async function loadTareas(){ const{data}=await sb.from('tareas').select('*').eq('archivado',false).order('vence',{ascending:true}); allTareas=data||[]; }
 let allPlantillasAnuales = [];
 async function loadPlantillas(){ const{data}=await sb.from('plantillas').select('*').order('nombre'); allPlantillas=data||[]; }
@@ -1786,7 +1786,7 @@ async function loadClientes(){ try{ const{data}=await sb.from('clientes').select
 async function loadComments(tid){ const{data}=await sb.from('comentarios').select('*').eq('tarea_id',tid).order('created_at',{ascending:true}); threadComments[tid]=data||[]; }
 function getCliente(id){ return allClientes.find(c=>c.id==id)||null; }
 
-// ── NAVEGACIÓN SIDEBAR ────────────────────────
+// -- NAVEGACION SIDEBAR ------------------------
 const FIN_PANES = ['sv-fin-resumen','sv-fin-honorarios','sv-fin-cuentas','sv-fin-recurrentes','sv-fin-gastos','sv-fin-resultados'];
 const FIN_RENDER_MAP = {
   'sv-fin-resumen':    ()=>renderResumen(),
@@ -1831,20 +1831,9 @@ async function finInit(){
   populateSelectors();
   finLoaded = true;
 }
-async function reloadGastos(){
-  const {data} = await sb.from('gastos').select('*').order('fecha',{ascending:false});
-  gastos = (data||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));
-  populateSelectors();
-}
-async function loadHonorarios(){
-  const {data} = await sb.from('honorarios').select('*').order('fecha',{ascending:false});
-  honorarios = (data||[]).map(h=>({...h,monto:parseFloat(h.monto)||0,cobro_parcial:parseFloat(h.cobro_parcial)||0,monto_cobrado:parseFloat(h.monto_cobrado)||0,cobros_hist:h.cobros_hist||[]}));
-  populateSelectors();
-}
-async function loadPlantillasRec(){
-  const {data} = await sb.from('plantillas_rec').select('*').order('created_at');
-  plantillasRec = (data||[]).map(p=>({...p,monto:parseFloat(p.monto)||0}));
-}
+async function reloadGastos(){const {data}=await sb.from('gastos').select('*').order('fecha',{ascending:false});gastos=(data||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));populateSelectors();}
+async function loadHonorarios(){const {data}=await sb.from('honorarios').select('*').order('fecha',{ascending:false});honorarios=(data||[]).map(h=>({...h,monto:parseFloat(h.monto)||0,cobro_parcial:parseFloat(h.cobro_parcial)||0,monto_cobrado:parseFloat(h.monto_cobrado)||0,cobros_hist:h.cobros_hist||[]}));populateSelectors();}
+async function loadPlantillasRec(){const {data}=await sb.from('plantillas_rec').select('*').order('created_at');plantillasRec=(data||[]).map(p=>({...p,monto:parseFloat(p.monto)||0}));}
 function empNav(el, paneId){
   document.querySelectorAll('#emp-sidebar .sidebar-item').forEach(i=>i.classList.remove('active'));
   document.querySelectorAll('#app-empleado .tab-pane').forEach(p=>p.classList.remove('active'));
@@ -1958,14 +1947,14 @@ async function addTareaEmp(){
 function empNavDesdeMetrica(tipo){
   // tipo: 'urgentes' | 'en_curso' | 'pendientes'
   const sidebarItems = document.querySelectorAll('#emp-sidebar .sidebar-item');
-  // índices: 0=Inicio, 1=Pendientes, 2=En curso, 3=Completadas, 4=Nueva tarea, 5=Clientes, 6=Notas
+  // indices: 0=Inicio, 1=Pendientes, 2=En curso, 3=Completadas, 4=Nueva tarea, 5=Clientes, 6=Notas
   let targetPane, targetIdx;
   if(tipo==='en_curso'){    targetPane='emp-en_curso';  targetIdx=2; }
   else {                    targetPane='emp-pendientes'; targetIdx=1; }
 
   empNav(sidebarItems[targetIdx], targetPane);
 
-  // Si es urgentes, filtrar por búsqueda "URGENTE" no alcanza — mejor resaltar
+  // Si es urgentes, filtrar por busqueda "URGENTE" no alcanza ? mejor resaltar
   // Marcar visualmente que estamos mostrando urgentes
   if(tipo==='urgentes'){
     // Resetear filtros primero
@@ -1974,7 +1963,7 @@ function empNavDesdeMetrica(tipo){
     const area=document.getElementById('emp-fil-area'); if(area) area.value='';
     const search=document.getElementById('emp-search'); if(search) search.value='';
     renderEmpTareas();
-    // Scroll al primer ítem urgente si existe
+    // Scroll al primer item urgente si existe
     setTimeout(()=>{
       const urgentes=document.querySelectorAll('.urgente-highlight');
       if(urgentes.length) urgentes[0].scrollIntoView({behavior:'smooth',block:'center'});
@@ -1995,7 +1984,7 @@ function populateEmpFilters(){
   if(filCliente)filCliente.innerHTML='<option value="">Todos los clientes</option>'+clienteIds.map(cid=>{const c=getCliente(cid);return c?`<option value="${cid}">${c.nombre}</option>`:''}).join('');
 }
 
-// ── Supervisor ────────────────────────────────
+// -- Supervisor --------------------------------
 async function loadSupervisor(){
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
   document.getElementById('app-supervisor').classList.add('active');
@@ -2036,9 +2025,9 @@ function renderSvTareas(){
   if(q)t=t.filter(x=>(x.nombre||'').toLowerCase().includes(q));
   if(cF)t=t.filter(x=>x.cliente_id==cF);
 
-  // Métricas globales
+  // Metricas globales
   const tot=t.length,pend=t.filter(x=>x.status==='pendiente').length,prog=t.filter(x=>x.status==='en_curso').length,done=t.filter(x=>x.status==='hecho').length;
-  // Métricas horizonte 21 días (sin filtro de mes para que siempre sea relevante)
+  // Metricas horizonte 21 dias (sin filtro de mes para que siempre sea relevante)
   const activas=allTareas.filter(x=>!x.archivado&&x.status!=='hecho');
   const urgentes=activas.filter(x=>x.vence&&diasParaVencer(x.vence)<=3).length;
   const enHoriz=activas.filter(x=>!x.vence||diasParaVencer(x.vence)<=21).length;
@@ -2059,7 +2048,7 @@ const areaMap={civil:'⚖️ Civil y Com.',laboral:'👷 Laboral',faltas:'🚨 F
 const areaClass={civil:'area-civil',laboral:'area-laboral',faltas:'area-faltas',administrativo:'area-admin',familia:'area-familia',otros:'area-otros'};
 function areaBadge(a){if(!a)return'';return`<span class="area-badge ${areaClass[a]||''}">${areaMap[a]||a}</span>`;}
 
-// Ordenamiento: 1° fecha vencimiento (ASC, sin fecha al final), 2° nombre de tarea (A-Z), 3° nombre de cliente (A-Z)
+// Ordenamiento: 1? fecha vencimiento (ASC, sin fecha al final), 2? nombre de tarea (A-Z), 3? nombre de cliente (A-Z)
 function sortTareas(arr){
   return arr.slice().sort((a,b)=>{
     const va=a.vence||'9999-99-99', vb=b.vence||'9999-99-99';
@@ -2170,7 +2159,7 @@ function buildTaskHTML(t, ctx){
   }
 }
 
-// ── COMENTARIOS ───────────────────────────────
+// -- COMENTARIOS -------------------------------
 function renderCommentList(tid){
   const c=threadComments[tid]||[];
   if(!c.length)return'<div class="thread-empty">Sin comentarios aún.</div>';
@@ -2190,7 +2179,7 @@ async function toggleThread(tid){
     thread.classList.remove('open');
     openThreads[tid] = false;
   } else {
-    // Abrir inmediatamente — no esperar la red
+    // Abrir inmediatamente ? no esperar la red
     thread.classList.add('open');
     openThreads[tid] = true;
     const cl = document.getElementById('comments-'+tid);
@@ -2242,7 +2231,7 @@ async function sendComment(tid){
   }
 }
 
-// ── NOTAS DEL EMPLEADO ────────────────────────
+// -- NOTAS DEL EMPLEADO ------------------------
 function getNotasKey(){ return `notas_${currentUser.role}`; }
 function loadNotas(){ try{ return JSON.parse(localStorage.getItem(getNotasKey())||'[]'); }catch(e){return[];} }
 function saveNotas(notas){ localStorage.setItem(getNotasKey(), JSON.stringify(notas)); }
@@ -2358,7 +2347,7 @@ function vcSwitchTab(tab){
   if(tab==='cartas') loadCartasCliente(vcCurrentClientId);
 }
 
-// ── DOCUMENTOS DEL CLIENTE ────────────────────────────────────────────────────
+// -- DOCUMENTOS DEL CLIENTE ----------------------------------------------------
 
 async function subirDocCliente(input){
   const files = Array.from(input.files);
@@ -2415,7 +2404,7 @@ async function eliminarDocCliente(clienteId, fileName){
   loadDocsCliente(clienteId);
 }
 
-// ── CARTAS DOCUMENTO DEL CLIENTE ──────────────────────────────────────────────
+// -- CARTAS DOCUMENTO DEL CLIENTE ----------------------------------------------
 
 async function loadCartasCliente(clienteId){
   const list = document.getElementById('vc-cartas-list');
@@ -2495,8 +2484,8 @@ function renderVcBody(c){
     ${c.notas_internas?`<div class="vc-section">Notas internas</div><div style="font-size:13px;color:var(--text2);line-height:1.6;font-style:italic">${escHtml(c.notas_internas)}</div>`:''}`;
 }
 
-// Accesos del cliente (tabla en memoria por sesión + Supabase)
-let vcAccesosCache = {}; // clienteId → [{id,organismo,usuario,clave,comentario}]
+// Accesos del cliente (tabla en memoria por sesion + Supabase)
+let vcAccesosCache = {}; // clienteId ? [{id,organismo,usuario,clave,comentario}]
 
 async function loadVcAccesos(clienteId){
   const cId=parseInt(clienteId);
@@ -2615,7 +2604,7 @@ async function accGuardarNuevo(tmpId, clienteId){
 }
 
 function accEditarFila(accId, clienteId){
-  // Normalizar tipos — clienteId puede llegar como string o número
+  // Normalizar tipos ? clienteId puede llegar como string o numero
   const cId=parseInt(clienteId);
   const aId=parseInt(accId);
   const cache=vcAccesosCache[cId]||vcAccesosCache[String(cId)]||[];
@@ -2747,7 +2736,7 @@ function checkAfipPin(){
   loadVcAccesos(vcCurrentClientId).then(()=>renderVcAccesos(c));
 }
 
-// ── NUEVA TAREA ───────────────────────────────
+// -- NUEVA TAREA -------------------------------
 function autoNombre(){const v=document.getElementById('nt-tipo').value;if(v&&v!=='Otra'&&v!=='tramite')document.getElementById('nt-nombre').value=v;}
 function toggleTramite(){
   const esTramite=document.getElementById('nt-tipo').value==='tramite';
@@ -2774,7 +2763,7 @@ async function addTarea(){
   const area=document.getElementById('nt-area').value||null;
   const cIdInt=clienteId?parseInt(clienteId):null;
 
-  // ── Crear tarea inicial
+  // -- Crear tarea inicial
   const{error}=await sb.from('tareas').insert([{
     nombre,asignado:emp,vence:vence||null,prio,notas,
     cliente_id:cIdInt,status,creada_en:todayStr(),
@@ -2784,7 +2773,7 @@ async function addTarea(){
   }]);
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
 
-  // ── Recurrencia mensual: guardar plantilla
+  // -- Recurrencia mensual: guardar plantilla
   if(recurrencia==='mensual'&&vence){
     const dia=parseInt(vence.split('-')[2]);
     const yaExiste=allPlantillas.find(p=>p.nombre===nombre&&(p.cliente_id||null)===cIdInt);
@@ -2794,7 +2783,7 @@ async function addTarea(){
     }
   }
 
-  // ── Recurrencia anual: guardar plantilla anual
+  // -- Recurrencia anual: guardar plantilla anual
   if(recurrencia==='anual'&&vence){
     const partes=vence.split('-');
     const mes=parseInt(partes[1]), dia=parseInt(partes[2]);
@@ -2813,7 +2802,7 @@ async function addTarea(){
   if(currentUser.role==='supervisor')renderSvTareas();
 }
 
-// ── EDITAR TAREA ──────────────────────────────
+// -- EDITAR TAREA ------------------------------
 function openEditTarea(id){
   const t=allTareas.find(x=>x.id==id); if(!t)return;
   editingId=id;
@@ -2854,7 +2843,7 @@ async function toggleVerificada(id, valor){
 }
 async function archivar(id){await sb.from('tareas').update({archivado:true}).eq('id',id);await loadTareas();renderSvTareas();}
 
-// ── CLIENTES ──────────────────────────────────
+// -- CLIENTES ----------------------------------
 function renderClientes(){
   const q=(document.getElementById('client-search')?.value||'').toLowerCase();
   const condF=document.getElementById('fil-client-cond')?.value||'';
@@ -2957,21 +2946,21 @@ async function confirmarBajaCliente(){
   },1500);
 }
 
-// ── PLANTILLAS ────────────────────────────────
+// -- PLANTILLAS --------------------------------
 function renderPlantillas(){
   // Selector meses
   const sel=document.getElementById('gen-mes-sel');
   if(sel){
-    const valorActual=sel.value; // preservar selección
+    const valorActual=sel.value; // preservar seleccion
     const hoy=new Date();
     sel.innerHTML=Array.from({length:12},(_,i)=>{
       const d=new Date(hoy.getFullYear(),hoy.getMonth()+i,1);
       const val=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       return`<option value="${val}">${mesLabel(val+'-01')}</option>`;
     }).join('');
-    if(valorActual) sel.value=valorActual; // restaurar si era válido
+    if(valorActual) sel.value=valorActual; // restaurar si era valido
   }
-  // Selector años
+  // Selector anos
   const selA=document.getElementById('gen-anio-sel');
   if(selA){
     const valorActualA=selA.value;
@@ -3019,11 +3008,11 @@ function renderPlantillas(){
   }
 }
 
-// ── Mensajes generación ────────────────────────
+// -- Mensajes generacion ------------------------
 function mostrarGenMsg(texto,ok=true){const el=document.getElementById('gen-msg');if(!el)return;el.style.display='block';el.style.color=ok?'var(--green)':'var(--red)';el.textContent=texto;setTimeout(()=>{el.style.display='none';},5000);}
 function mostrarGenAnioMsg(texto,ok=true){const el=document.getElementById('gen-anio-msg');if(!el)return;el.style.display='block';el.style.color=ok?'var(--green)':'var(--red)';el.textContent=texto;setTimeout(()=>{el.style.display='none';},5000);}
 
-// ── Generación mensual ─────────────────────────
+// -- Generacion mensual -------------------------
 async function generarMesManual(){
   const mesStr=document.getElementById('gen-mes-sel')?.value; if(!mesStr)return;
   const count=await generarMes(mesStr);
@@ -3067,7 +3056,7 @@ async function generarMes(mesStr){
   return count;
 }
 
-// ── Generación anual ───────────────────────────
+// -- Generacion anual ---------------------------
 async function generarAnioManual(){
   const anio=parseInt(document.getElementById('gen-anio-sel')?.value); if(!anio)return;
   const count=await generarAnio(anio);
@@ -3092,7 +3081,7 @@ async function generarAnio(anio){
     const diasEnMes=new Date(anio,mes,0).getDate();
     const dia=Math.min(p.dia||diasEnMes,diasEnMes);
     const vence=`${anio}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-    // Verificación doble: nombre+empleado+fecha exacta
+    // Verificacion doble: nombre+empleado+fecha exacta
     const{data}=await sb.from('tareas').select('id').eq('nombre',p.nombre).eq('vence',vence).eq('archivado',false);
     if(!data||!data.length){
       await sb.from('tareas').insert([{nombre:p.nombre,asignado:p.asignado,vence,prio:p.prio,notas:p.notas||'',status:'pendiente',creada_en:todayStr(),recurrente:true,archivado:false,comment_count:0,cliente_id:p.cliente_id||null,area:p.area||null}]);
@@ -3133,14 +3122,14 @@ async function savePlantillaEdit(){
   closeModal('modal-edit-plantilla'); await loadPlantillas(); renderPlantillas();
 }
 async function delPlantilla(id){await sb.from('plantillas').delete().eq('id',id); await loadPlantillas(); renderPlantillas();}
-// ── HISTORIAL ─────────────────────────────────
-// ── ARCHIVO AUTOMÁTICO (30 días) ─────────────
+// -- HISTORIAL ---------------------------------
+// -- ARCHIVO AUTOMATICO (30 dias) -------------
 async function autoArchivar(){
-  // Fecha límite: hoy menos 30 días
+  // Fecha limite: hoy menos 30 dias
   const limite = new Date();
   limite.setDate(limite.getDate() - 30);
   const limiteStr = limite.toISOString().split('T')[0];
-  // Archivar tareas completadas con completada_en anterior al límite
+  // Archivar tareas completadas con completada_en anterior al limite
   const{error} = await sb.from('tareas')
     .update({archivado: true})
     .eq('status','hecho')
@@ -3214,7 +3203,7 @@ function filtrarHistorial(){
   }).join('')+'</div>';
 }
 
-// ── CONFIG ────────────────────────────────────
+// -- CONFIG ------------------------------------
 function openConfigModal(){
   document.getElementById('cfg-emp-rows').innerHTML=['emp1','emp2','emp3'].map(k=>`
     <div class="config-row"><span class="config-label">${k}</span><input type="text" id="cfg-empname-${k}" class="config-input" value="${empNames[k]||''}"/></div>`).join('');
@@ -3232,7 +3221,7 @@ async function saveConfig(){
   setTimeout(()=>{msg.textContent='';closeModal('modal-config');},1500);
 }
 
-// ── EMPLEADO ──────────────────────────────────
+// -- EMPLEADO ----------------------------------
 async function loadEmpleado(){
   await Promise.all([loadTareas(),loadClientes()]);
   document.getElementById('app-empleado').classList.add('active');
@@ -3268,7 +3257,7 @@ function renderEmpTareas(){
   const mF=document.getElementById('emp-fil-mes')?.value||'';
   const cF=document.getElementById('emp-fil-cliente')?.value||'';
   const aF=document.getElementById('emp-fil-area')?.value||'';
-  // Determinar qué pane está activo
+  // Determinar que pane esta activo
   const activePaneId=['emp-pendientes','emp-en_curso','emp-completadas'].find(pid=>{
     const el=document.getElementById(pid); return el&&el.classList.contains('active');
   })||'emp-pendientes';
@@ -3279,7 +3268,7 @@ function renderEmpTareas(){
     // Aplicar filtros solo en el pane activo
     if(pid===activePaneId){
       if(q) t=t.filter(x=>(x.nombre||'').toLowerCase().includes(q));
-      // Para en_curso no aplicar filtro de mes por defecto — mostrar todas siempre
+      // Para en_curso no aplicar filtro de mes por defecto ? mostrar todas siempre
       if(mF && pid!=='emp-en_curso') t=t.filter(x=>!x.vence||(x.vence&&x.vence.startsWith(mF)));
       if(mF && pid==='emp-en_curso') t=t.filter(x=>!x.vence||(x.vence&&x.vence.startsWith(mF)));
       if(cF) t=t.filter(x=>x.cliente_id==cF);
@@ -3322,12 +3311,12 @@ async function empCompletar(id){
   await sb.from('tareas').update({status:'hecho',completada_en:todayStr()}).eq('id',id);
 }
 
-// ── PANEL INICIO EMPLEADO ─────────────────────
+// -- PANEL INICIO EMPLEADO ---------------------
 function renderEmpInicio(){
   const role = currentUser.role;
   const misTareas = allTareas.filter(t=>t.asignado===role&&!t.archivado&&t.status!=='hecho');
 
-  // Horizonte: próximos 21 días + sin fecha
+  // Horizonte: proximos 21 dias + sin fecha
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const limite21 = new Date(hoy); limite21.setDate(hoy.getDate()+21);
 
@@ -3350,7 +3339,7 @@ function renderEmpInicio(){
   const pendHoriz  = enHorizonte.filter(t=>t.status==='pendiente');
   const sinFecha   = misTareas.filter(t=>!t.vence);
 
-  // Calendario 21 días
+  // Calendario 21 dias
   const diasSem = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const meses   = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const hoyStr  = `${diasSem[hoy.getDay()]} ${hoy.getDate()} ${meses[hoy.getMonth()]}`;
@@ -3361,7 +3350,7 @@ function renderEmpInicio(){
     diasCal.push({fecha:d,str:ds,tareas:misTareas.filter(t=>t.vence===ds),esHoy:i===0});
   }
 
-  // Lista principal: horizonte 21 días ordenada por vencimiento
+  // Lista principal: horizonte 21 dias ordenada por vencimiento
   const listaHorizonte = enHorizonte
     .filter(t=>t.vence) // sin fecha van aparte
     .sort((a,b)=>{
@@ -3490,7 +3479,7 @@ function renderEmpInicio(){
     </details>`:''}`;
 }
 
-// ── CARGA LABORAL (supervisor) ────────────────
+// -- CARGA LABORAL (supervisor) ----------------
 function renderCargaLaboral(){
   const emps = ['emp1','emp2','emp3'];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -3537,7 +3526,7 @@ function renderCargaLaboral(){
       const pct = Math.round((enHorizonte.length/maxHoriz)*100);
       const barClass = enHorizonte.length<=3?'bajo':enHorizonte.length<=8?'medio':'alto';
 
-      // Calendario 21 días para este empleado
+      // Calendario 21 dias para este empleado
       const diasCal = [];
       for(let i=0;i<21;i++){
         const d=new Date(hoy); d.setDate(hoy.getDate()+i);
@@ -3652,14 +3641,14 @@ function toggleCargaCard(role){
   if(chev)chev.style.transform=isOpen?'rotate(-90deg)':'rotate(0deg)';
 }
 
-// ── DASHBOARD ─────────────────────────────────
+// -- DASHBOARD ---------------------------------
 function renderDashboard(){
   const cont=document.getElementById('dashboard-content'); if(!cont)return;
   const hoy=new Date();
   const mesActual=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
   const mesAnterior=(()=>{const d=new Date(hoy.getFullYear(),hoy.getMonth()-1,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
 
-  // ── Clientes
+  // -- Clientes
   const totalClientes=allClientes.filter(x=>!x.archivado).length;
   const porCondicion={RI:0,Monotributo:0,Exento:0,'No Responsable':0};
   const porTipo={juridica:0,fisica:0,sin_datos:0};
@@ -3670,7 +3659,7 @@ function renderDashboard(){
     else porTipo.sin_datos++;
   });
 
-  // ── Tareas
+  // -- Tareas
   const tareasActivas=allTareas.filter(t=>!t.archivado&&t.status!=='hecho');
   const tareasHoy=tareasActivas.filter(t=>t.vence===todayStr()).length;
   const tareasVencidas=tareasActivas.filter(t=>t.vence&&t.vence<todayStr()).length;
@@ -3679,7 +3668,7 @@ function renderDashboard(){
   const totalActivas=tareasActivas.length;
   const tasaEnCurso=totalActivas>0?Math.round(tareasEnCurso/totalActivas*100):0;
 
-  // ── Carga por empleado
+  // -- Carga por empleado
   const empCarga=['emp1','emp2','emp3'].map(e=>({
     nombre:empNames[e]||e,
     total:tareasActivas.filter(t=>t.asignado===e).length,
@@ -3688,17 +3677,17 @@ function renderDashboard(){
   }));
   const maxCarga=Math.max(1,...empCarga.map(e=>e.total));
 
-  // ── Tareas por área
+  // -- Tareas por area
   const porArea={};
   tareasActivas.forEach(t=>{const a=t.area||'sin_area';porArea[a]=(porArea[a]||0)+1;});
   const areaLabels={impuestos:'Impuestos',laboral:'Laboral',societario:'Societario',auditoria:'Auditoría',financiero:'Financiero',otros:'Otros',sin_area:'Sin área'};
 
-  // ── Completadas últimos 30 días
+  // -- Completadas ultimos 30 dias
   const hace30=new Date(); hace30.setDate(hace30.getDate()-30);
   const completadas30=allTareas.filter(t=>t.archivado&&t.completada_en&&new Date(t.completada_en)>=hace30).length;
   const completadasMes=allTareas.filter(t=>t.completada_en&&t.completada_en.startsWith(mesActual)).length;
 
-  // ── KPI Cards helper
+  // -- KPI Cards helper
   const kpi=(val,label,sub='',color='var(--text)')=>
     `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)">
       <div style="font-size:28px;font-weight:300;font-family:'DM Mono',monospace;color:${color};line-height:1;margin-bottom:4px">${val}</div>
@@ -3789,7 +3778,7 @@ function renderDashboard(){
 
 document.getElementById('login-pin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ── Init: bloquear login hasta que config esté lista ──
+// -- Init: bloquear login hasta que config este lista --
 (async()=>{
   const btn = document.querySelector('#app-login .btn-full');
   const err = document.getElementById('login-error');
@@ -3805,22 +3794,18 @@ document.getElementById('login-pin').addEventListener('keydown',e=>{if(e.key==='
 })();
 
 
-// ── MÓDULO FINANZAS ──────────────────────────
+// -- MODULO FINANZAS --------------------------
 
-// ══════════════════════════════════════════════
+// ==============================================
 //  SUPABASE
-// ══════════════════════════════════════════════
+// ==============================================
 
 
 
 
-// ── STATE ─────────────────────────────────────
+// -- STATE -------------------------------------
 // clientes = allClientes (shared with tareas)
-const subtipos={
-  recurrente_mensual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],
-  recurrente_anual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],
-  no_recurrente:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'amparo',label:'Amparo'},{val:'otro',label:'Otro'}]
-};
+const subtipos={recurrente_mensual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],recurrente_anual:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'otro',label:'Otro'}],no_recurrente:[{val:'civil',label:'Civil y Comercial'},{val:'laboral',label:'Laboral'},{val:'familia',label:'Familia'},{val:'administrativo',label:'Administrativo'},{val:'faltas',label:'Faltas'},{val:'amparo',label:'Amparo'},{val:'otro',label:'Otro'}]};
 let honorarios    = [];
 let gastos        = [];
 let plantillasRec = [];
@@ -3830,9 +3815,9 @@ let nextPlId      = 1;
 let cobroId       = null;
 let appLoaded     = false;
 
-// ── LOADERS ───────────────────────────────────
+// -- LOADERS -----------------------------------
 // getCliente - using tareas version
-// function getCliente(id){return allClientes.find(c=>c.id==id)||{nombre:'—',cuit:'',condicion:''};}
+// function getCliente(id){return allClientes.find(c=>c.id==id)||{nombre:'?',cuit:'',condicion:''};}
 
 function getEstado(h){
   if(h.cobrado)return{label:'COBRADO',cls:'b-cobrado'};
@@ -3872,7 +3857,7 @@ function populateSelectors(){
   document.getElementById('h-cliente').innerHTML=cliReq;
   const plCli=document.getElementById('pl-cliente');
   if(plCli) plCli.innerHTML=cliReq;
-  // Poblar filtros de servicio con los servicios del catálogo
+  // Poblar filtros de servicio con los servicios del catalogo
   const srvOpts='<option value="">Todos los servicios</option>'+servicios.map(s=>`<option value="${s.nombre}">${s.nombre}</option>`).join('');
   ['fil-h-servicio','fil-rec-servicio'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=srvOpts;});
 }
@@ -3933,7 +3918,7 @@ function editarHonorario(id){
   openModal('modal-honorario');
 }
 
-// Verifica si ya hay honorarios para ese cliente en ese mes (excluyendo el que se está editando)
+// Verifica si ya hay honorarios para ese cliente en ese mes (excluyendo el que se esta editando)
 function verificarDuplicadoMes(cliId, fecha, excludeId=null){
   if(!cliId||!fecha)return[];
   const mes=fecha.substring(0,7);
@@ -4201,7 +4186,7 @@ function renderCuentaCorriente(){renderCCLista();}
 
 function renderCCLista(){
   const q=(document.getElementById('cc-busqueda')?.value||'').toLowerCase().trim();
-  // Calcular saldo por cliente — siempre histórico completo en la lista
+  // Calcular saldo por cliente ? siempre historico completo en la lista
   const saldos=allClientes.map(cli=>{
     const hCli=honorarios.filter(h=>h.cliente_id===cli.id);
     const dev=hCli.reduce((s,h)=>s+h.monto,0);
@@ -4304,17 +4289,17 @@ function renderCCDetalle(){
   const desde=document.getElementById('fil-cc-desde')?.value||'';
   const hasta=document.getElementById('fil-cc-hasta')?.value||'';
 
-  // Calcular fecha límite para los últimos 12 meses
+  // Calcular fecha limite para los ultimos 12 meses
   const hace12m=new Date(); hace12m.setMonth(hace12m.getMonth()-12);
   const todos=honorarios.filter(h=>h.cliente_id===cliId);
   let enPeriodo=ccPeriodo==='12m'
     ? todos.filter(h=>new Date(h.fecha+'T00:00:00')>=hace12m)
     : todos;
-  // Aplicar filtros de fecha manuales si están seteados
+  // Aplicar filtros de fecha manuales si estan seteados
   if(desde) enPeriodo=enPeriodo.filter(h=>h.fecha>=desde);
   if(hasta) enPeriodo=enPeriodo.filter(h=>h.fecha<=hasta);
 
-  // Resumen siempre sobre histórico completo
+  // Resumen siempre sobre historico completo
   const totDevTotal=todos.reduce((s,h)=>s+h.monto,0);
   const totCobTotal=todos.reduce((s,h)=>s+(h.cobro_parcial||0)+(h.cobrado&&!h.cobro_parcial?h.monto:0),0);
   const saldo=totDevTotal-totCobTotal;
@@ -4343,9 +4328,9 @@ function renderCCDetalle(){
   if(vista==='movimientos'){
     let movs=[];
     enPeriodo.forEach(h=>{
-      // Débito por devengamiento
+      // Debito por devengamiento
       movs.push({fecha:h.fecha,tipo:'debito',concepto:'Honorario devengado',detalle:h.descripcion,monto:-h.monto,ref:h.nro_interno,factura:h.nro_arca||null,id:h.id});
-      // Créditos por cobros (parciales o total)
+      // Creditos por cobros (parciales o total)
       if(h.cobros_hist&&h.cobros_hist.length){
         h.cobros_hist.forEach((c,i)=>{
           movs.push({fecha:c.fecha,tipo:'credito',concepto:`Cobro ${h.cobros_hist.length>1?`(${i+1}/${h.cobros_hist.length}) `:''}recibido`,detalle:h.descripcion,monto:c.monto,ref:h.nro_interno,factura:h.nro_arca||null,id:h.id});
@@ -4405,10 +4390,10 @@ function renderCCDetalle(){
 }
 
 // RECURRENTES
-// ── PLANTILLAS RECURRENTES ────────────────────
+// -- PLANTILLAS RECURRENTES --------------------
 let editingPlId=null;
 
-// ── CATÁLOGO DE SERVICIOS ─────────────────────
+// -- CATALOGO DE SERVICIOS ---------------------
 let servicios=[]; // [{id, nombre}]
 
 async function loadServicios(){
@@ -4504,7 +4489,7 @@ async function eliminarServicio(id, nombre){
 function getPlantillaKey(p){ return `${p.descripcion.toLowerCase().trim()}__${p.cliente_id}`; }
 
 function getUltimaInstancia(p){
-  // Buscar el honorario más reciente que coincida con esta plantilla
+  // Buscar el honorario mas reciente que coincida con esta plantilla
   return honorarios
     .filter(h=>h.cliente_id===p.cliente_id&&h.tipo===p.tipo&&h.descripcion.toLowerCase().includes(p.descripcion.toLowerCase().split(' ').slice(0,2).join(' ').toLowerCase()))
     .sort((a,b)=>b.fecha>a.fecha?1:-1)[0]||null;
@@ -4660,7 +4645,7 @@ async function generarMesActual(){
   const conflictos=[];
   const insertar=[];
 
-  // Calcular qué hay que generar ANTES de tocar Supabase
+  // Calcular que hay que generar ANTES de tocar Supabase
   const recMensuales=plantillasRec.filter(p=>p.tipo==='recurrente_mensual');
   // Calcular nro base una sola vez
   let nroBase=honorarios.reduce((m,h)=>{
@@ -4669,7 +4654,7 @@ async function generarMesActual(){
   },0);
 
   for(const p of recMensuales){
-    // Verificar duplicado específico: misma descripción+cliente en el mismo mes
+    // Verificar duplicado especifico: misma descripcion+cliente en el mismo mes
     const descBase=p.descripcion.toLowerCase().trim();
     const yaExiste=honorarios.some(h=>
       h.cliente_id===p.cliente_id &&
@@ -4829,7 +4814,7 @@ function renderRecurrentes(){
 }
 
 
-// ── SUELDOS ───────────────────────────────────
+// -- SUELDOS -----------------------------------
 let sueldos = [];
 let empleados = [];
 let sueldoEmpleadoActivo = null;
@@ -4840,7 +4825,7 @@ async function loadSueldos(){
   sueldos=(data||[]).map(s=>({...s,monto:parseFloat(s.monto)||0}));
 }
 
-// empNames ya declarado en tareas — compartido
+// empNames ya declarado en tareas ? compartido
 
 async function loadEmpleados(){
   const{data,error}=await sb.from('config').select('*');
@@ -4978,7 +4963,7 @@ async function saveSueldo(){
   await loadSueldos();
   renderSueldosGrid();
   if(sueldoEmpleadoActivo) renderHistorialSueldo(sueldoEmpleadoActivo);
-  // También guardar en gastos para que aparezca en resumen/resultados
+  // Tambien guardar en gastos para que aparezca en resumen/resultados
   await sb.from('gastos').insert([{
     fecha, categoria:'sueldos',
     descripcion:`Sueldo ${nombre} — ${mesLabel(fecha.substring(0,7))}`,
@@ -5094,7 +5079,7 @@ function renderReparto(list){
   const socios=['Mariano','Santiago','Tomas'];
   const COLORS=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
 
-  // Gráfico 1: por categoría
+  // Grafico 1: por categoria
   const catMap={};
   list.forEach(g=>{ catMap[g.categoria]=(catMap[g.categoria]||0)+g.monto; });
   const catLabels=Object.keys(catMap).map(k=>getCat(k));
@@ -5106,7 +5091,7 @@ function renderReparto(list){
     document.getElementById('legend-gastos-cat').innerHTML=catLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmtPeso(catData[i])}</strong></span>`).join('');
   }
 
-  // Gráfico 2: por quién pagó
+  // Grafico 2: por quien pago
   const quienMap={};
   list.forEach(g=>{ const k=g.pagado_por||'Estudio'; quienMap[k]=(quienMap[k]||0)+g.monto; });
   const quienLabels=Object.keys(quienMap);
@@ -5118,7 +5103,7 @@ function renderReparto(list){
     document.getElementById('legend-gastos-quien').innerHTML=quienLabels.map((l,i)=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};flex-shrink:0"></span>${l}: <strong>${fmtPeso(quienData[i])}</strong></span>`).join('');
   }
 
-  // Tabla de reparto: cuánto pagó cada uno vs cuánto debería haber pagado
+  // Tabla de reparto: cuanto pago cada uno vs cuanto deberia haber pagado
   const total=list.reduce((s,g)=>s+g.monto,0);
   const porSocio=total/3;
   const pagado={Mariano:0,Santiago:0,Tomas:0};
@@ -5154,7 +5139,7 @@ function renderReparto(list){
   });
   html+=`</tbody></table></div>`;
 
-  // Quién le debe a quién
+  // Quien le debe a quien
   const deudores=socios.filter(s=>saldo[s]<0).map(s=>({nombre:s,debe:-saldo[s]}));
   const acreedores=socios.filter(s=>saldo[s]>0).map(s=>({nombre:s,tiene:saldo[s]}));
 
@@ -5306,7 +5291,7 @@ function renderEstadoResultados(){
 }
 
 
-// ── CARTA DOCUMENTO ──────────────────────────────────────────────
+// -- CARTA DOCUMENTO ----------------------------------------------
 function renderCartaDoc(containerId) {
   const cont = document.getElementById(containerId);
   if (!cont) return;
@@ -5516,10 +5501,10 @@ async function imprimirCD(){
     }
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-  // Conversión mm → puntos (1mm = 2.8346pt)
+  // Conversion mm ? puntos (1mm = 2.8346pt)
   const mm = v => v * 2.8346;
 
-  // Tamaño oficio: 215.9mm × 355.6mm
+  // Tamano oficio: 215.9mm ? 355.6mm
   const W = mm(215.9);
   const H = mm(355.6);
 
@@ -5551,7 +5536,7 @@ async function imprimirCD(){
     const yPt = H - mm(yMm);
     const xPt = mm(xMm);
     let str = String(text);
-    // Truncar si supera el ancho máximo
+    // Truncar si supera el ancho maximo
     if (maxWidthMm) {
       const maxW = mm(maxWidthMm);
       while (str.length > 1 && font.widthOfTextAtSize(str, size) > maxW) {
@@ -5590,7 +5575,7 @@ async function imprimirCD(){
 
     let y = yMm;
     for (const line of lines) {
-      if (mm(y) < mm(10)) break; // no salir de la página
+      if (mm(y) < mm(10)) break; // no salir de la pagina
       txt(line, xMm, y, font, size);
       y += lineHeightMm;
     }
@@ -5600,7 +5585,7 @@ async function imprimirCD(){
   const SZ_CAMPO  = 7.5;
   const SZ_BODY   = 10;
 
-  // ── TALÓN 1 ─────────────────────────────────────────
+  // -- TALON 1 -----------------------------------------
   const c = CD_COORDS;
   txt(remNombre,  c.rem_nombre.x,  c.rem_nombre.y,  fontBold,   SZ_NOMBRE, 100);
   txt(remDir,     c.rem_dir.x,     c.rem_dir.y,     fontNormal, SZ_CAMPO,  100);
@@ -5614,7 +5599,7 @@ async function imprimirCD(){
   txt(destCiudad, c.dest_ciudad.x, c.dest_ciudad.y, fontNormal, SZ_CAMPO,   39);
   txt(destProv,   c.dest_prov.x,   c.dest_prov.y,   fontNormal, SZ_CAMPO,   35);
 
-  // ── TALÓN 2 ─────────────────────────────────────────
+  // -- TALON 2 -----------------------------------------
   txt(remNombre,  c.rem2_nombre.x,  c.rem2_nombre.y,  fontBold,   SZ_NOMBRE, 100);
   txt(remDir,     c.rem2_dir.x,     c.rem2_dir.y,     fontNormal, SZ_CAMPO,  100);
   txt(remCP,      c.rem2_cp.x,      c.rem2_cp.y,      fontNormal, SZ_CAMPO,   23);
@@ -5627,10 +5612,10 @@ async function imprimirCD(){
   txt(destCiudad, c.dest2_ciudad.x, c.dest2_ciudad.y, fontNormal, SZ_CAMPO,   39);
   txt(destProv,   c.dest2_prov.x,   c.dest2_prov.y,   fontNormal, SZ_CAMPO,   35);
 
-  // ── CUERPO ──────────────────────────────────────────
+  // -- CUERPO ------------------------------------------
   txtWrap(cuerpo, c.cuerpo.x, c.cuerpo.y, fontBody, SZ_BODY, 172, 5.5);
 
-  // ── PIE ─────────────────────────────────────────────
+  // -- PIE ---------------------------------------------
   if (fecha) txt(fecha, 22, 320, fontNormal, SZ_CAMPO + 1, 100);
   if (firma) txt(firma, 22, 330, fontNormal, SZ_CAMPO + 1, 172);
 
@@ -5652,7 +5637,6 @@ async function imprimirCD(){
 
 // INIT
 if(typeof supabase==='undefined'){
-  
 } else {
   (async()=>{
     await loadClientes();
@@ -5667,9 +5651,9 @@ if(typeof supabase==='undefined'){
 
 
 
-// ════════════════════════════════════════════════════════════
+// ============================================================
 // FALTAS PROVINCIALES
-// ════════════════════════════════════════════════════════════
+// ============================================================
 
 function renderFaltasProv(containerId){
   const cont = document.getElementById(containerId);
@@ -5854,7 +5838,7 @@ function renderFaltasProv(containerId){
 
   </div>`;
 
-  // Inicializar listas dinámicas
+  // Inicializar listas dinamicas
   fpAgregarInfraccion();
   fpAgregarActa();
 }
@@ -5894,9 +5878,9 @@ function fpAgregarActa(){
   document.getElementById('fp-pv-actas-list').appendChild(div);
 }
 
-// ════════════════════════════════════════════════════════════
+// ============================================================
 // FALTAS MUNICIPALES
-// ════════════════════════════════════════════════════════════
+// ============================================================
 
 function renderFaltasMun(containerId){
   const cont = document.getElementById(containerId);
@@ -6037,9 +6021,9 @@ function fmTab(tab){
   });
 }
 
-// ════════════════════════════════════════════════════════════
-// GENERACIÓN PDF — FALTAS PROVINCIALES
-// ════════════════════════════════════════════════════════════
+// ============================================================
+// GENERACION PDF ? FALTAS PROVINCIALES
+// ============================================================
 
 async function generarFaltaPDF(tipo){
   if(typeof PDFLib === 'undefined'){ alert('Error: librería PDF no cargó. Recargá la página.'); return; }
@@ -6050,7 +6034,7 @@ async function generarFaltaPDF(tipo){
   const fontTimes  = await pdfDoc.embedFont(StandardFonts.TimesRoman);
   const fontTimesBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
 
-  // A4: 595.28 x 841.89 pt, márgenes 70pt
+  // A4: 595.28 x 841.89 pt, margenes 70pt
   const W=595.28, H=841.89, ML=70, MR=70, MT=70, lineH=16;
   const maxW = W - ML - MR;
   let page = pdfDoc.addPage([W, H]);
@@ -6239,9 +6223,9 @@ async function generarFaltaPDF(tipo){
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
-// ════════════════════════════════════════════════════════════
-// GENERACIÓN PDF — FALTAS MUNICIPALES
-// ════════════════════════════════════════════════════════════
+// ============================================================
+// GENERACION PDF ? FALTAS MUNICIPALES
+// ============================================================
 
 async function generarFaltaMunPDF(tipo){
   if(typeof PDFLib === 'undefined'){ alert('Error: librería PDF no cargó. Recargá la página.'); return; }
@@ -6337,7 +6321,7 @@ async function generarFaltaMunPDF(tipo){
       skip(0.5);
       writeLine(`El etilómetro${equipo?' marca '+equipo:''} utilizado en el presente caso no acredita en autos la calibración periódica exigida por el INTI (Instituto Nacional de Tecnología Industrial), único organismo oficial competente para certificar estos dispositivos.`, fontTimes, 11);
       skip(0.5);
-      writeLine(`El INTI establece requisitos técnicos que deben cumplir los alcoholímetros para su utilización válida: 1) mediciones digitales, no analógicas; 2) indicación clara de la unidad en gr/l; 3) resultado expresado con dos decimales; 4) posibilidad de retener el resultado durante al menos 15 minutos; 5) sistema de boquillas descartables. (Disponible en: https://www.inti.gob.ar). De las constancias de autos no surge que el equipo empleado contara con dichas certificaciones y calibraciones semestrales, siendo que una copia simple sin homologación carece de valor probatorio suficiente.`, fontTimes, 11);
+      writeLine(`El INTI establece requisitos técnicos que deben cumplir los alcoholímetros para su utilización válida: 1) mediciones digitales, no analógicas; 2) indicación clara de la unidad en gr/l; 3) resultado expresado con dos decimales; 4) posibilidad de retener el resultado durante al menos 15 minutos; 5) sistema de boquillas descartables. (Disponible en: https://www.inti.gob.ar). De las constancias de autos no surge que el equipo empleado contara con dichas certificaciones y calibraciones semestrales, siendo que una copia simple sin homologacion carece de valor probatorio suficiente.`, fontTimes, 11);
       skip(0.5);
       writeLine(`Un aparato sin calibración conforme puede dar falsos positivos o mediciones incorrectas, lo que introduce una duda razonable que debe resolverse en favor del imputado (in dubio pro reo), conforme Art. 18 CN y doctrina constitucional aplicable.`, fontTimes, 11);
       skip();
@@ -6610,7 +6594,7 @@ const CD_LABELS = {
   cuerpo:      'Cuerpo del texto',
 };
 
-// Datos de ejemplo para la calibración
+// Datos de ejemplo para la calibracion
 const CD_SAMPLE = {
   rem_nombre:  'SANTIAGO TEJERINA',
   rem_dir:     'SAN MARTIN 454',
@@ -6635,7 +6619,7 @@ const CD_SAMPLE = {
   cuerpo:      'Me dirijo a Ud. en mi carácter de letrado...',
 };
 
-// ── DNI FALTAS PROVINCIALES ───────────────────────────────────────────────────
+// -- DNI FALTAS PROVINCIALES ---------------------------------------------------
 
 const fpDniData = {}; // { 'm-frente': base64, 'm-dorso': base64, 'p-frente': ... }
 
@@ -6660,7 +6644,7 @@ async function fpAgregarDniAlPDF(pdfDoc, escrito){
   const W = 595.28, H = 841.89;
   const page = pdfDoc.addPage([W, H]);
 
-  // Título
+  // Titulo
   const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
   page.drawText('DOCUMENTO NACIONAL DE IDENTIDAD – TITULAR', {
     x: 70, y: H - 60, font, size: 12, color: rgb(0,0,0)
@@ -6681,7 +6665,7 @@ async function fpAgregarDniAlPDF(pdfDoc, escrito){
     return pdfDoc.embedJpg(bytes);
   };
 
-  // Frente — mitad superior
+  // Frente ? mitad superior
   if(frente){
     try {
       const img = await embedImg(frente);
@@ -6694,7 +6678,7 @@ async function fpAgregarDniAlPDF(pdfDoc, escrito){
     } catch(e){ console.error('Error embediendo frente DNI:', e); }
   }
 
-  // Dorso — mitad inferior
+  // Dorso ? mitad inferior
   if(dorso){
     try {
       const img = await embedImg(dorso);
@@ -6709,7 +6693,7 @@ async function fpAgregarDniAlPDF(pdfDoc, escrito){
   }
 }
 
-// ── SISTEMA DINÁMICO DE ARGUMENTOS DE NULIDAD ────────────────────────────────
+// -- SISTEMA DINAMICO DE ARGUMENTOS DE NULIDAD --------------------------------
 
 const FM_NUL_LABELS = {
   testigos:      'Falta de testigos',
@@ -6803,7 +6787,7 @@ function cargarFondoCal(input) {
 
 function abrirCalibracion() {
   // Papel oficio: 215.9 x 355.6mm. Lo mostramos a escala en pantalla.
-  const SCALE = 2.8; // px por mm — ajustable
+  const SCALE = 2.8; // px por mm ? ajustable
   const PW = Math.round(215.9 * SCALE);
   const PH = Math.round(355.6 * SCALE);
 
@@ -6891,7 +6875,7 @@ function abrirCalibracion() {
     paper.appendChild(chip);
     chips[key] = chip;
 
-    // Botón en la lista
+    // Boton en la lista
     const btn = document.createElement('div');
     btn.style.cssText = `padding:5px 8px;border-radius:4px;cursor:pointer;font-size:11px;color:#fff;background:${color}33;border:1px solid ${color};`;
     btn.textContent = CD_LABELS[key];
@@ -6952,7 +6936,7 @@ function resetearCoordenadas() {
   location.reload();
 }
 
-// ── ESTADÍSTICAS ────────────────────────────────────────────
+// -- ESTADISTICAS --------------------------------------------
 let chartCaptador=null, chartTareas=null, chartHonorarios=null;
 
 async function renderEstadisticas(){
@@ -6966,7 +6950,7 @@ async function renderEstadisticas(){
   const empLabel = {emp1:'Santiago',emp2:'Mariano',emp3:'Tomas',estudio:'Estudio',externo:'Externo',''  :'Sin asignar'};
   const COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
 
-  // Gráfico 1: Clientes por captador
+  // Grafico 1: Clientes por captador
   const captCounts = {};
   (clientes||[]).forEach(c=>{ const k=c.captador||''; captCounts[k]=(captCounts[k]||0)+1; });
   const captLabels = Object.keys(captCounts).map(k=>empLabel[k]||k);
@@ -6976,7 +6960,7 @@ async function renderEstadisticas(){
   chartCaptador = new Chart(ctx1,{type:'doughnut',data:{labels:captLabels,datasets:[{data:captData,backgroundColor:COLORS,borderWidth:2}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
   document.getElementById('legend-captador').innerHTML = captLabels.map((l,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;margin-bottom:4px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};display:inline-block"></span>${l}: <strong>${captData[i]}</strong></span>`).join('');
 
-  // Gráfico 2: Tareas por empleado
+  // Grafico 2: Tareas por empleado
   const tarCounts = {};
   (tareas||[]).forEach(t=>{ const k=t.asignado||''; tarCounts[k]=(tarCounts[k]||0)+1; });
   const tarLabels = Object.keys(tarCounts).map(k=>empLabel[k]||k);
@@ -6986,7 +6970,7 @@ async function renderEstadisticas(){
   chartTareas = new Chart(ctx2,{type:'doughnut',data:{labels:tarLabels,datasets:[{data:tarData,backgroundColor:COLORS,borderWidth:2}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
   document.getElementById('legend-tareas').innerHTML = tarLabels.map((l,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;margin-bottom:4px"><span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};display:inline-block"></span>${l}: <strong>${tarData[i]}</strong></span>`).join('');
 
-  // Gráfico 3: Honorarios mes a mes (últimos 12 meses)
+  // Grafico 3: Honorarios mes a mes (ultimos 12 meses)
   const honMeses = {};
   (hons||[]).forEach(h=>{
     if(!h.fecha||!h.monto_cobrado) return;
@@ -7000,7 +6984,6 @@ async function renderEstadisticas(){
   const ctx3 = document.getElementById('chart-honorarios').getContext('2d');
   chartHonorarios = new Chart(ctx3,{type:'bar',data:{labels:honLabels,datasets:[{label:'Honorarios cobrados ($)',data:honData,backgroundColor:'#6366f1',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+v.toLocaleString('es-AR')}}}}});
 }
-
 </script>
 
 </body>
