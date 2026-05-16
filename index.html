@@ -10,15 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <title>FS Legales</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous">
-// Event delegation para gastos
-document.addEventListener('click', function(e){
-  const delBtn = e.target.closest('[data-gid]');
-  if(delBtn){ eliminarGasto(delBtn.dataset.gid); return; }
-  const editBtn = e.target.closest('[data-gedit]');
-  if(editBtn){ editarGasto(editBtn.dataset.gedit); return; }
-});
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <style>
@@ -1664,6 +1656,12 @@ tr.clickable{cursor:pointer}
 </div>
 
 <script>
+document.addEventListener('click',function(e){
+  var d=e.target.closest('[data-gid]');
+  if(d){if(typeof eliminarGasto==='function')eliminarGasto(d.dataset.gid);return;}
+  var ed=e.target.closest('[data-gedit]');
+  if(ed){if(typeof editarGasto==='function')editarGasto(ed.dataset.gedit);return;}
+});
 //  CONFIGURACION SUPABASE
 const SUPABASE_URL      = 'https://rofbahscccdbxbwimjzt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY';
