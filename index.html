@@ -5291,10 +5291,24 @@ function renderResumen(){
   socios.forEach(k => { gastosPorSocio[k] = 0; });
   let gastosEstudio = 0;
 
+  // Mapeo de nombres a keys de empleados
+  const nombreAKey = {};
+  socios.forEach(k => {
+    const nombre = (empNames[k] || '').toLowerCase();
+    nombreAKey[nombre] = k;
+    // También mapear por primer nombre
+    const primerNombre = nombre.split(' ')[0];
+    if (primerNombre) nombreAKey[primerNombre] = k;
+  });
+
   gM.forEach(g => {
     const monto = g.monto || 0;
-    if (gastosPorSocio[g.pagado_por] !== undefined) {
-      gastosPorSocio[g.pagado_por] += monto;
+    const pagador = g.pagado_por || 'estudio';
+    // Buscar por key directo o por nombre
+    const key = gastosPorSocio[pagador] !== undefined ? pagador :
+                nombreAKey[pagador.toLowerCase()] || null;
+    if (key) {
+      gastosPorSocio[key] += monto;
     } else {
       gastosEstudio += monto;
     }
