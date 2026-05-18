@@ -1926,7 +1926,7 @@ async function addTareaEmp(){
   if(!nombre){err.textContent='Ingresá un nombre para la tarea.';err.style.display='block';return;}
   if(!esTramite&&!vence){err.textContent='Ingresá la fecha de vencimiento.';err.style.display='block';return;}
   const status=esTramite?'en_curso':'pendiente';
-  const cIdInt=clienteId?parseInt(clienteId):null;
+  const cIdInt=clienteId||null;
   const{error}=await sb.from('tareas').insert([{
     nombre,
     asignado:currentUser.role,  // siempre el empleado logueado
@@ -2494,7 +2494,7 @@ function renderVcBody(c){
 let vcAccesosCache = {}; // clienteId ? [{id,organismo,usuario,clave,comentario}]
 
 async function loadVcAccesos(clienteId){
-  const cId=parseInt(clienteId);
+  const cId=clienteId;
   const{data,error}=await sb.from('accesos_cliente').select('*').eq('cliente_id',cId).order('organismo');
   if(!error) vcAccesosCache[cId]=data||[];
   else vcAccesosCache[cId]=[];
@@ -2611,7 +2611,7 @@ async function accGuardarNuevo(tmpId, clienteId){
 
 function accEditarFila(accId, clienteId){
   // Normalizar tipos ? clienteId puede llegar como string o numero
-  const cId=parseInt(clienteId);
+  const cId=clienteId;
   const aId=parseInt(accId);
   const cache=vcAccesosCache[cId]||vcAccesosCache[String(cId)]||[];
   const a=cache.find(x=>parseInt(x.id)===aId);
@@ -2767,7 +2767,7 @@ async function addTarea(){
   if(!esTramite&&!vence){err.textContent='Ingresá la fecha de vencimiento.';err.style.display='block';return;}
   const status=esTramite?'en_curso':'pendiente';
   const area=document.getElementById('nt-area').value||null;
-  const cIdInt=clienteId?parseInt(clienteId):null;
+  const cIdInt=clienteId||null;
 
   // -- Crear tarea inicial
   const{error}=await sb.from('tareas').insert([{
@@ -2835,7 +2835,7 @@ async function saveEdit(){
     vence:vence||null,
     prio:document.getElementById('ed-prio').value,
     status,notas:document.getElementById('ed-notas').value.trim(),
-    cliente_id:clienteId?parseInt(clienteId):null,
+    cliente_id:clienteId||null,
     completada_en:status==='hecho'?todayStr():null,
     area:document.getElementById('ed-area').value||null
   }).eq('id',editingId);
@@ -3122,7 +3122,7 @@ async function savePlantillaEdit(){
     nombre, asignado:document.getElementById('ep-emp').value, dia,
     prio:document.getElementById('ep-prio').value,
     notas:document.getElementById('ep-notas').value.trim(),
-    cliente_id:clienteId?parseInt(clienteId):null
+    cliente_id:clienteId||null
   }).eq('id',editingPlantillaId);
   if(error){err.textContent='Error: '+error.message;err.style.display='block';return;}
   closeModal('modal-edit-plantilla'); await loadPlantillas(); renderPlantillas();
@@ -3930,7 +3930,7 @@ function verificarDuplicadoMes(cliId, fecha, excludeId=null){
 }
 
 async function saveHonorario(){
-  const cliId=parseInt(document.getElementById('h-cliente').value);
+  const cliId=document.getElementById('h-cliente').value;
   const desc=document.getElementById('h-descripcion').value.trim();
   const monto=parseFloat(document.getElementById('h-monto').value);
   const fecha=document.getElementById('h-fecha').value;
@@ -4567,7 +4567,7 @@ function abrirModalPlantilla(id=null){
 }
 
 async function savePlantilla(){
-  const cliId=parseInt(document.getElementById('pl-cliente').value);
+  const cliId=document.getElementById('pl-cliente').value;
   const desc=document.getElementById('pl-descripcion').value.trim();
   const monto=parseFloat(document.getElementById('pl-monto').value);
   const dia=parseInt(document.getElementById('pl-dia').value)||1;
@@ -5432,7 +5432,7 @@ async function guardarCartaEnSupa(pdfBytes){
     const {data:{publicUrl}} = sb.storage.from('documentos').getPublicUrl(fileName);
     // Guardar registro en tabla
     await sb.from('cartas_documento').insert([{
-      cliente_id: parseInt(clienteId),
+      cliente_id: clienteId,
       destinatario: g('cd-dest-nombre'),
       asunto: g('cd-asunto'),
       fecha: fecha,
