@@ -5406,17 +5406,15 @@ function renderResumen(){
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
       <thead><tr>
         <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:left">Socio</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Por honorarios</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Gastos pagados</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Gastos que pagó</th>
         <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Su parte gastos</th>
         <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Balance neto</th>
       </tr></thead>
       <tbody>
         ${socios.map(k => `<tr>
           <td style="padding:8px 0;border-bottom:1px solid var(--b1);font-weight:500">${nombreSocio(k)}</td>
-          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--green)">${fmtPeso(fondos[k])}</td>
           <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--blue)">${fmtPeso(gastosPorSocio[k])}</td>
-          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--red)">${fmtPeso(gastoPorSocio)}</td>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--red)">${fmtPeso(parteCadaSocio)}</td>
           <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${balance[k]>=0?'var(--green)':'var(--red)'}">${balance[k]>=0?'+':''}${fmtPeso(balance[k])}</td>
         </tr>`).join('')}
       </tbody>
