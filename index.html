@@ -1043,11 +1043,15 @@ tr.clickable{cursor:pointer}
       </select>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Quién trajo el cliente (40%)</label>
-        <select id="h-captador"><option value="">— sin asignar —</option></select>
+      <div class="form-group">
+        <label>Quién trajo el cliente (40%)</label>
+        <div id="h-captador-checks" style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r)"></div>
+        <input type="hidden" id="h-captador" value=""/>
       </div>
-      <div class="form-group"><label>Quién trabajó la causa (50%)</label>
-        <select id="h-trabajador"><option value="">— sin asignar —</option></select>
+      <div class="form-group">
+        <label>Quién trabajó la causa (50%)</label>
+        <div id="h-trabajador-checks" style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r)"></div>
+        <input type="hidden" id="h-trabajador" value=""/>
       </div>
     </div>
     <div class="form-group"><label>Notas internas</label><textarea id="h-notas" placeholder="Observaciones..."></textarea></div>
@@ -3863,7 +3867,13 @@ function populateSelectors(){
   ['fil-h-servicio','fil-rec-servicio'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=srvOpts;});
   // Poblar captador y trabajador con nombres de empleados
   const empOpts='<option value="">— sin asignar —</option>'+['emp1','emp2','emp3'].map(e=>`<option value="${e}">${empNames[e]||e}</option>`).join('');
-  ['h-captador','h-trabajador'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empOpts;});
+  // Renderizar checkboxes para captador y trabajador
+  ['captador','trabajador'].forEach(tipo => {
+    const cont = document.getElementById('h-' + tipo + '-checks');
+    if(!cont) return;
+    cont.innerHTML = '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="" onchange="updateHiddenMulti(\'' + tipo + '\')" style="width:16px;height:16px;accent-color:var(--blue)"> <span style="color:var(--t3);font-style:italic">— ninguno —</span></label>' +
+      ['emp1','emp2','emp3'].map(k => `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="${k}" onchange="updateHiddenMulti('${tipo}')" style="width:16px;height:16px;accent-color:var(--blue)"> <span>${empNames[k]||k}</span></label>`).join('');
+  });
 }
 
 function finNavTo(el,paneId){
@@ -3908,6 +3918,8 @@ function resetHonorarioForm(){
   document.getElementById('h-comprobante').value='factura_b';
   document.getElementById('h-notas').value='';
   document.getElementById('h-error').style.display='none';
+  setMultiChecks('captador','');
+  setMultiChecks('trabajador','');
 }
 
 function editarHonorario(id){
@@ -3926,6 +3938,8 @@ function editarHonorario(id){
   document.getElementById('h-comprobante').value=h.comprobante;
   document.getElementById('h-notas').value=h.notas||'';
   document.getElementById('h-error').style.display='none';
+  setMultiChecks('captador',h.captador||'');
+  setMultiChecks('trabajador',h.trabajador||'');
   openModal('modal-honorario');
 }
 
@@ -3969,6 +3983,8 @@ async function saveHonorario(){
     vencimiento:document.getElementById('h-vencimiento').value||null,
     comprobante:document.getElementById('h-comprobante').value,
     notas:document.getElementById('h-notas').value.trim(),
+    captador:document.getElementById('h-captador').value||'',
+    trabajador:document.getElementById('h-trabajador').value||'',
   };
 
   if(editingHId){
@@ -3987,6 +4003,23 @@ async function saveHonorario(){
 }
 
 
+
+function updateHiddenMulti(tipo){
+  const checks = document.querySelectorAll('#h-' + tipo + '-checks input[type="checkbox"]:checked');
+  const vals = Array.from(checks).map(c => c.value).filter(v => v !== '');
+  document.getElementById('h-' + tipo).value = vals.join(',');
+}
+function getMultiVal(id){
+  const val = document.getElementById(id).value;
+  return val ? val.split(',').filter(Boolean) : [];
+}
+function setMultiChecks(tipo, val){
+  const vals = val ? val.split(',').filter(Boolean) : [];
+  document.querySelectorAll('#h-' + tipo + '-checks input[type="checkbox"]').forEach(cb => {
+    cb.checked = vals.includes(cb.value);
+  });
+  document.getElementById('h-' + tipo).value = val || '';
+}
 function bindHonorarioButtons(){
   document.querySelectorAll('[data-hdelete]').forEach(function(b){
     b.onclick=function(){eliminarHonorario(b.dataset.hdelete);};
@@ -5272,18 +5305,30 @@ function renderResumen(){
 
   cobrados.forEach(h => {
     const monto = h.monto || 0;
-    // 40% al captador
-    if (h.captador && fondos[h.captador] !== undefined) {
-      fondos[h.captador] += monto * 0.40;
+    const caps = (h.captador||'').split(',').filter(k => k && fondos[k]!==undefined);
+    const trabs = (h.trabajador||'').split(',').filter(k => k && fondos[k]!==undefined);
+
+    if (!caps.length && !trabs.length) {
+      // Sin asignar: 100% va a caja del estudio
+    } else {
+      // 40% dividido entre captadores
+      if (caps.length) caps.forEach(k => { fondos[k] += monto * 0.40 / caps.length; });
+      // 50% dividido entre trabajadores
+      if (trabs.length) trabs.forEach(k => { fondos[k] += monto * 0.50 / trabs.length; });
     }
-    // 50% al trabajador
-    if (h.trabajador && fondos[h.trabajador] !== undefined) {
-      fondos[h.trabajador] += monto * 0.50;
-    }
-    // 10% al estudio (caja común) - se descuenta de gastos luego
   });
 
-  const cajEstudio = cobrados.reduce((s, h) => s + (h.monto || 0) * 0.10, 0);
+  // Caja del estudio = 10% de todos los cobrados + porcentajes sin asignar
+  const cajEstudio = cobrados.reduce((s, h) => {
+    const monto = h.monto || 0;
+    const caps = (h.captador||'').split(',').filter(k => k && fondos[k]!==undefined);
+    const trabs = (h.trabajador||'').split(',').filter(k => k && fondos[k]!==undefined);
+    if (!caps.length && !trabs.length) return s + monto; // 100% a caja
+    let cajaH = monto * 0.10;
+    if (!caps.length) cajaH += monto * 0.40;
+    if (!trabs.length) cajaH += monto * 0.50;
+    return s + cajaH;
+  }, 0);
 
   // Gastos del mes
   // Separar gastos pagados por estudio vs por socios individuales
