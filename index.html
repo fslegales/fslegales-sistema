@@ -4034,10 +4034,10 @@ function renderHonorarios(){
       <td class="monospace" style="font-weight:600">${fmtPeso(h.monto)}</td>
       <td><span class="badge ${est.cls}">${est.label}</span></td>
       <td onclick="event.stopPropagation()"><div class="btn-group">
-        ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" onclick="abrirFacturar(${h.id})">Facturar</button>`:''}
-        ${!h.cobrado?`<button class="btn btn-xs btn-amber" onclick="abrirCobro(${h.id})">Cobrar</button>`:''}
-        <button class="btn btn-xs btn-ghost" onclick="editarHonorario(${h.id})">Editar</button>
-        <button class="btn btn-xs btn-danger" onclick="eliminarHonorario(${h.id})">✕</button>
+        ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" data-hfacturar="${h.id}">Facturar</button>`:''}
+        ${!h.cobrado?`<button class="btn btn-xs btn-amber" data-hcobro="${h.id}">Cobrar</button>`:''}
+        <button class="btn btn-xs btn-ghost" data-hedit="${h.id}">Editar</button>
+        <button class="btn btn-xs btn-danger" data-hdelete="${h.id}">✕</button>
       </div></td>
     </tr>`;
   }).join('')}</tbody></table>`;
@@ -4068,10 +4068,10 @@ function verDetalleH(id){
     </div>
     ${h.notas?`<div style="background:var(--s2);border-radius:var(--r);padding:12px;font-size:13px;color:var(--t2);font-style:italic;margin-bottom:12px">${h.notas}</div>`:''}
     <div class="btn-group">
-      ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-blue btn-sm" onclick="closeModal('modal-detalle');abrirFacturar(${h.id})">Facturar</button>`:''}
-      ${!h.cobrado?`<button class="btn btn-amber btn-sm" onclick="closeModal('modal-detalle');abrirCobro(${h.id})">Cobrar</button>`:''}
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-detalle');editarHonorario(${h.id})">Editar</button>
-      <button class="btn btn-danger btn-sm" onclick="closeModal('modal-detalle');eliminarHonorario(${h.id})">Eliminar</button>
+      ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-blue btn-sm" data-hfacturar="${h.id}">Facturar</button>`:''}
+      ${!h.cobrado?`<button class="btn btn-amber btn-sm" data-hcobro="${h.id}">Cobrar</button>`:''}
+      <button class="btn btn-ghost btn-sm" data-hedit="${h.id}">Editar</button>
+      <button class="btn btn-danger btn-sm" data-hdelete="${h.id}">Eliminar</button>
     </div>`;
   openModal('modal-detalle');
 }
@@ -4389,8 +4389,8 @@ function renderCCDetalle(){
         <td class="monospace" style="color:${saldoH>0?'var(--amber)':'var(--green)'}">${saldoH>0?fmtPeso(saldoH):'✓'}</td>
         <td><span class="badge ${est.cls}">${est.label}</span></td>
         <td onclick="event.stopPropagation()"><div class="btn-group">
-          ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" onclick="abrirFacturar(${h.id})">Facturar</button>`:''}
-          ${!h.cobrado?`<button class="btn btn-xs btn-amber" onclick="abrirCobro(${h.id})">Cobrar</button>`:''}
+          ${!h.facturado&&h.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" data-hfacturar="${h.id}">Facturar</button>`:''}
+          ${!h.cobrado?`<button class="btn btn-xs btn-amber" data-hcobro="${h.id}">Cobrar</button>`:''}
         </div></td>
       </tr>`;
     }).join(''):`<tr><td colspan="10"><div class="empty-state">Sin datos en el período.</div></td></tr>`}
@@ -4812,7 +4812,7 @@ function renderRecurrentes(){
       <td style="text-align:center">${p.auto_factura?`<span style="color:var(--green);font-size:16px" title="Emisión automática">✓</span>`:`<span style="color:var(--t3);font-size:13px">—</span>`}</td>
       <td><div class="btn-group">
         ${!emitidaMes?`<button class="btn btn-xs btn-green" onclick="emitirDesdeRec(${p.id})">Emitir</button>`:`<span style="font-size:11px;color:var(--green)">✓ Emitido</span>`}
-        ${instPend&&!instPend.facturado&&instPend.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" onclick="abrirFacturar(${instPend.id})">Facturar</button>`:''}
+        ${instPend&&!instPend.facturado&&instPend.comprobante!=='informal'?`<button class="btn btn-xs btn-blue" data-hfacturar="${instPend.id}">Facturar</button>`:''}
         <button class="btn btn-xs btn-ghost" onclick="abrirModalPlantilla(${p.id})">✎</button>
         <button class="btn btn-xs btn-danger" onclick="eliminarPlantilla(${p.id})">✕</button>
       </div></td>
@@ -5248,7 +5248,7 @@ function renderResumen(){
         <td class="monospace" style="font-size:11px">${fmtDate(h.vencimiento)}</td>
         <td class="monospace" style="font-weight:600">${fmtPeso(h.monto)}</td>
         <td><span class="badge ${est.cls}">${est.label}</span></td>
-        <td><button class="btn btn-xs btn-amber" onclick="abrirCobro(${h.id})">Cobrar</button></td>
+        <td><button class="btn btn-xs btn-amber" data-hcobro="${h.id}">Cobrar</button></td>
       </tr>`;}).join('')}
     <tr style="background:var(--s2)"><td colspan="3" style="font-weight:600;font-size:13px">Total pendiente</td><td class="monospace" style="font-weight:700;color:var(--amber)">${fmtPeso(totPend)}</td><td colspan="2"></td></tr>
     </tbody></table>`:'<div class="empty-state">Sin honorarios pendientes 🎉</div>';
