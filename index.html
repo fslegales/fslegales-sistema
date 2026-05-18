@@ -817,6 +817,7 @@ tr.clickable{cursor:pointer}
         <div class="card"><div class="card-title">Egresos del mes</div><div id="resumen-egresos"></div></div>
       </div>
       <div class="card" style="margin-top:16px"><div class="card-title">Honorarios pendientes de cobro</div><div id="resumen-pendientes"></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-title">💰 Balance de socios</div><div id="resumen-balance"></div></div>
     </div>
 
     <!-- HONORARIOS -->
@@ -5255,6 +5256,117 @@ function renderResumen(){
   document.getElementById('resumen-egresos').innerHTML=
     Object.entries(catT).map(([c,t])=>`<div class="er-row"><span class="er-label">${getCat(c)}</span><span class="er-val neg">${fmtPeso(t)}</span></div>`).join('')+
     `<div class="er-row subtotal"><span class="er-label">Total gastos</span><span class="er-val neg">${fmtPeso(totGas)}</span></div>`;
+
+
+  // === BALANCE DE SOCIOS ===
+  // Socios del estudio
+  const socios = ['emp1','emp2','emp3'];
+  const nombreSocio = k => empNames[k] || k;
+
+  // Honorarios cobrados del mes
+  const cobrados = hM.filter(h => h.cobrado);
+
+  // Calcular fondos por socio
+  const fondos = {};
+  socios.forEach(k => { fondos[k] = 0; });
+
+  cobrados.forEach(h => {
+    const monto = h.monto || 0;
+    // 40% al captador
+    if (h.captador && fondos[h.captador] !== undefined) {
+      fondos[h.captador] += monto * 0.40;
+    }
+    // 50% al trabajador
+    if (h.trabajador && fondos[h.trabajador] !== undefined) {
+      fondos[h.trabajador] += monto * 0.50;
+    }
+    // 10% al estudio (caja común) - se descuenta de gastos luego
+  });
+
+  const cajEstudio = cobrados.reduce((s, h) => s + (h.monto || 0) * 0.10, 0);
+
+  // Gastos del mes
+  // Separar gastos pagados por estudio vs por socios individuales
+  const gastosPorSocio = {};
+  socios.forEach(k => { gastosPorSocio[k] = 0; });
+  let gastosEstudio = 0;
+
+  gM.forEach(g => {
+    const monto = g.monto || 0;
+    if (gastosPorSocio[g.pagado_por] !== undefined) {
+      gastosPorSocio[g.pagado_por] += monto;
+    } else {
+      gastosEstudio += monto;
+    }
+  });
+
+  // Gastos que deben cubrir los socios (después de descontar caja del estudio)
+  const totalGastos = totGas;
+  const gastosCubiertosEstudio = Math.min(cajEstudio, gastosEstudio);
+  const gastosSinCubrir = Math.max(0, totalGastos - gastosCubiertosEstudio);
+  const gastoPorSocio = gastosSinCubrir / 3;
+
+  // Balance neto de cada socio
+  const balance = {};
+  socios.forEach(k => {
+    balance[k] = fondos[k]           // lo que le corresponde por honorarios
+      - gastoPorSocio                // su parte de gastos
+      + gastosPorSocio[k]           // gastos que pagó el (saldo a favor)
+      - (gastosEstudio > cajEstudio ? (gastosEstudio - cajEstudio) / 3 : 0); // déficit de caja
+  });
+
+  // Calcular transferencias necesarias
+  const deudores = socios.filter(k => balance[k] < -1).map(k => ({k, debe: -balance[k]}));
+  const acreedores = socios.filter(k => balance[k] > 1).map(k => ({k, tiene: balance[k]}));
+
+  let transferenciasHTML = '';
+  const deudoresCopy = deudores.map(d => ({...d}));
+  const acreedoresCopy = acreedores.map(a => ({...a}));
+  deudoresCopy.forEach(d => {
+    acreedoresCopy.forEach(a => {
+      if (d.debe > 0.01 && a.tiene > 0.01) {
+        const monto = Math.min(d.debe, a.tiene);
+        transferenciasHTML += `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:6px;margin-bottom:6px;font-size:13px">
+          <span style="color:var(--red);font-weight:500">${nombreSocio(d.k)}</span>
+          <span style="color:var(--text3)">debe transferir a</span>
+          <span style="color:var(--green);font-weight:500">${nombreSocio(a.k)}</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'DM Mono',monospace;font-weight:700">${fmtPeso(monto)}</span>
+        </div>`;
+        d.debe -= monto;
+        a.tiene -= monto;
+      }
+    });
+  });
+
+  const balanceHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--t3);margin-bottom:4px">Caja del estudio (10% honorarios cobrados): <strong class="monospace">${fmtPeso(cajEstudio)}</strong></div>
+      <div style="font-size:11px;color:var(--t3)">Gastos del mes cubiertos por caja: <strong class="monospace">${fmtPeso(gastosCubiertosEstudio)}</strong> / Resto a dividir: <strong class="monospace">${fmtPeso(gastosSinCubrir)}</strong></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <thead><tr>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:left">Socio</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Por honorarios</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Gastos pagados</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Su parte gastos</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Balance neto</th>
+      </tr></thead>
+      <tbody>
+        ${socios.map(k => `<tr>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);font-weight:500">${nombreSocio(k)}</td>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--green)">${fmtPeso(fondos[k])}</td>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--blue)">${fmtPeso(gastosPorSocio[k])}</td>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--red)">${fmtPeso(gastoPorSocio)}</td>
+          <td style="padding:8px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${balance[k]>=0?'var(--green)':'var(--red)'}">${balance[k]>=0?'+':''}${fmtPeso(balance[k])}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    ${transferenciasHTML ? `<div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Transferencias a realizar</div>${transferenciasHTML}` : '<div style="font-size:13px;color:var(--green)">✓ Los balances están equilibrados.</div>'}
+  `;
+
+  const balanceEl = document.getElementById('resumen-balance');
+  if (balanceEl) balanceEl.innerHTML = balanceHTML;
 
   document.getElementById('resumen-pendientes').innerHTML=pend.length?`
     <table><thead><tr><th>Cliente</th><th>Descripción</th><th>Vcto.</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody>
