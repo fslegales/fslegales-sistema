@@ -3884,6 +3884,13 @@ function updateSubtipo(){
 }
 
 // HONORARIOS
+function getNextNroInterno(){
+  const max=honorarios.reduce((m,h)=>{
+    const n=parseInt((h.nro_interno||'HC-0000').replace('HC-',''))||0;
+    return n>m?n:m;
+  },0);
+  return 'HC-'+String(max+1).padStart(4,'0');
+}
 let editingHId=null;
 
 function resetHonorarioForm(){
