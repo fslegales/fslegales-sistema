@@ -3985,6 +3985,21 @@ async function saveHonorario(){
   if(ccClienteActivo)renderCCDetalle();else renderCCLista();
 }
 
+
+function bindHonorarioButtons(){
+  document.querySelectorAll('[data-hdelete]').forEach(function(b){
+    b.onclick=function(){eliminarHonorario(b.dataset.hdelete);};
+  });
+  document.querySelectorAll('[data-hedit]').forEach(function(b){
+    b.onclick=function(){editarHonorario(b.dataset.hedit);};
+  });
+  document.querySelectorAll('[data-hcobro]').forEach(function(b){
+    b.onclick=function(){closeModal('modal-detalle');abrirCobro(b.dataset.hcobro);};
+  });
+  document.querySelectorAll('[data-hfacturar]').forEach(function(b){
+    b.onclick=function(){closeModal('modal-detalle');abrirFacturar(b.dataset.hfacturar);};
+  });
+}
 function renderHonorarios(){
   const mF=document.getElementById('fil-h-mes').value;
   const cF=document.getElementById('fil-h-cliente').value;
@@ -4041,6 +4056,7 @@ function renderHonorarios(){
       </div></td>
     </tr>`;
   }).join('')}</tbody></table>`;
+  setTimeout(bindHonorarioButtons,50);
 }
 
 function verDetalleH(id){
