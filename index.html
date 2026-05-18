@@ -3860,6 +3860,9 @@ function populateSelectors(){
   // Poblar filtros de servicio con los servicios del catalogo
   const srvOpts='<option value="">Todos los servicios</option>'+servicios.map(s=>`<option value="${s.nombre}">${s.nombre}</option>`).join('');
   ['fil-h-servicio','fil-rec-servicio'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=srvOpts;});
+  // Poblar captador y trabajador con nombres de empleados
+  const empOpts='<option value="">— sin asignar —</option>'+['emp1','emp2','emp3'].map(e=>`<option value="${e}">${empNames[e]||e}</option>`).join('');
+  ['h-captador','h-trabajador'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empOpts;});
 }
 
 function finNavTo(el,paneId){
