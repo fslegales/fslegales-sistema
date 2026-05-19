@@ -5366,11 +5366,12 @@ function renderResumen(){
   const gastoPorSocio = gastosSinCubrir / 3;
 
   // Balance neto de cada socio
+  // Los honorarios van al bolsillo de cada socio, NO afectan el balance del estudio.
+  // El balance es SOLO sobre gastos: lo que pagó cada uno vs lo que le corresponde pagar.
   const balance = {};
   socios.forEach(k => {
-    balance[k] = fondos[k]           // lo que le corresponde por honorarios
-      - gastoPorSocio                // su parte de gastos
-      + gastosPorSocio[k]           // gastos que pagó el (saldo a favor)
+    balance[k] = gastosPorSocio[k]   // gastos que adelantó (a favor)
+      - gastoPorSocio                // su parte proporcional de gastos (en contra)
       - (gastosEstudio > cajEstudio ? (gastosEstudio - cajEstudio) / 3 : 0); // déficit de caja
   });
 
@@ -5403,16 +5404,46 @@ function renderResumen(){
   const balanceHTML = `
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
       <div style="font-size:12px;color:var(--t3)">💼 Caja del estudio: <strong class="monospace" style="color:var(--text1)">${fmtPeso(cajEstudio)}</strong></div>
-      <div style="font-size:12px;color:var(--t3)">📤 Gastos caja cubre: <strong class="monospace" style="color:var(--text1)">${fmtPeso(gastosCubiertosEstudio)}</strong></div>
+      <div style="font-size:12px;color:var(--t3)">📤 Gastos cubre caja: <strong class="monospace" style="color:var(--text1)">${fmtPeso(gastosCubiertosEstudio)}</strong></div>
       <div style="font-size:12px;color:var(--t3)">🔀 A dividir entre socios: <strong class="monospace" style="color:var(--amber)">${fmtPeso(gastosSinCubrir)}</strong></div>
     </div>
+
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--t3);margin-bottom:6px;letter-spacing:.5px">📊 Honorarios del mes (informativo — van al bolsillo de cada socio)</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+      <thead><tr>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:left">Socio</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Captación (40%)</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Trabajo (50%)</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Total ganado</th>
+      </tr></thead>
+      <tbody>
+        ${socios.map(k => {
+          // Calcular captación y trabajo por separado
+          let cap = 0, trab = 0;
+          cobrados.forEach(h => {
+            const monto = h.monto || 0;
+            const caps = (h.captador||'').split(',').filter(x => x && fondos[x]!==undefined);
+            const trabs = (h.trabajador||'').split(',').filter(x => x && fondos[x]!==undefined);
+            if (caps.includes(k)) cap += monto * 0.40 / caps.length;
+            if (trabs.includes(k)) trab += monto * 0.50 / trabs.length;
+          });
+          return `<tr>
+            <td style="padding:7px 0;border-bottom:1px solid var(--b1);font-weight:500;font-size:13px">${nombreSocio(k)}</td>
+            <td style="padding:7px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:var(--t2)">${fmtPeso(cap)}</td>
+            <td style="padding:7px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:var(--t2)">${fmtPeso(trab)}</td>
+            <td style="padding:7px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">${fmtPeso(cap+trab)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--t3);margin-bottom:6px;letter-spacing:.5px">⚖️ Balance de gastos del estudio</div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
       <thead><tr>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:left">Socio</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Honorarios</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Gastos pagó</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Le corresponde</th>
-        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:6px 0;border-bottom:1px solid var(--b1);text-align:right">Saldo</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:left">Socio</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Gastos que pagó</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Le corresponde</th>
+        <th style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);padding:5px 0;border-bottom:1px solid var(--b1);text-align:right">Saldo</th>
       </tr></thead>
       <tbody>
         ${socios.map(k => {
@@ -5420,8 +5451,7 @@ function renderResumen(){
           const saldoColor = saldo >= 0 ? 'var(--green)' : 'var(--red)';
           const saldoLabel = saldo >= 0 ? `▲ ${fmtPeso(saldo)}` : `▼ ${fmtPeso(Math.abs(saldo))}`;
           return `<tr>
-            <td style="padding:10px 0;border-bottom:1px solid var(--b1);font-weight:600">${nombreSocio(k)}</td>
-            <td style="padding:10px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--green)">${fmtPeso(fondos[k])}</td>
+            <td style="padding:10px 0;border-bottom:1px solid var(--b1);font-weight:600;font-size:13px">${nombreSocio(k)}</td>
             <td style="padding:10px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--blue)">${fmtPeso(gastosPorSocio[k])}</td>
             <td style="padding:10px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;color:var(--red)">${fmtPeso(parteCadaSocio)}</td>
             <td style="padding:10px 0;border-bottom:1px solid var(--b1);text-align:right;font-family:'DM Mono',monospace;font-weight:700;font-size:15px;color:${saldoColor}">${saldoLabel}</td>
