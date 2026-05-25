@@ -1320,6 +1320,26 @@ tr.clickable{cursor:pointer}
       <div class="sidebar-item" onclick="empNav(this,'emp-notas')">
         <span class="sidebar-icon">📝</span><span class="sidebar-label">Mis notas</span>
       </div>
+      <hr class="sidebar-divider"/>
+      <div class="sidebar-section">Finanzas</div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-resumen')">
+        <span class="sidebar-icon">📊</span><span class="sidebar-label">Resumen</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-honorarios')">
+        <span class="sidebar-icon">💰</span><span class="sidebar-label">Honorarios</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-cuentas')">
+        <span class="sidebar-icon">📒</span><span class="sidebar-label">Cuentas ctes.</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-recurrentes')">
+        <span class="sidebar-icon">🔁</span><span class="sidebar-label">Recurrentes</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-gastos')">
+        <span class="sidebar-icon">📤</span><span class="sidebar-label">Gastos</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fin-resultados')">
+        <span class="sidebar-icon">📉</span><span class="sidebar-label">Estado result.</span>
+      </div>
     </nav>
     <!-- CONTENT EMPLEADO -->
       <div id="emp-carta-doc" class="tab-pane">
@@ -1435,6 +1455,13 @@ tr.clickable{cursor:pointer}
         <div id="emp-client-list"></div>
       </div>
       <div id="emp-notas" class="tab-pane"></div>
+      <!-- PANES FINANZAS EMPLEADO (mismas funciones que supervisor) -->
+      <div id="emp-fin-resumen" class="tab-pane"></div>
+      <div id="emp-fin-honorarios" class="tab-pane"></div>
+      <div id="emp-fin-cuentas" class="tab-pane"></div>
+      <div id="emp-fin-recurrentes" class="tab-pane"></div>
+      <div id="emp-fin-gastos" class="tab-pane"></div>
+      <div id="emp-fin-resultados" class="tab-pane"></div>
     </div>
   </div>
 </div>
@@ -1843,6 +1870,7 @@ async function finInit(){
   populateSelectors();
   finLoaded = true;
 }
+async function ensureFinLoaded(){ if(!finLoaded) await finInit(); }
 async function reloadGastos(){const {data}=await sb.from('gastos').select('*').order('fecha',{ascending:false});gastos=(data||[]).map(g=>({...g,monto:parseFloat(g.monto)||0}));populateSelectors();}
 async function loadHonorarios(){const {data}=await sb.from('honorarios').select('*').order('fecha',{ascending:false});honorarios=(data||[]).map(h=>({...h,monto:parseFloat(h.monto)||0,cobro_parcial:parseFloat(h.cobro_parcial)||0,monto_cobrado:parseFloat(h.monto_cobrado)||0,cobros_hist:h.cobros_hist||[]}));populateSelectors();}
 async function loadPlantillasRec(){const {data}=await sb.from('plantillas_rec').select('*').order('created_at');plantillasRec=(data||[]).map(p=>({...p,monto:parseFloat(p.monto)||0}));}
@@ -1851,7 +1879,18 @@ function empNav(el, paneId){
   document.querySelectorAll('#app-empleado .tab-pane').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById(paneId).classList.add('active');
-  const showFilters = !['emp-inicio','emp-notas','emp-nueva','emp-clientes'].includes(paneId);
+  const _finPanes = ['emp-fin-resumen','emp-fin-honorarios','emp-fin-cuentas','emp-fin-recurrentes','emp-fin-gastos','emp-fin-resultados'];
+  // Devolver panes de finanzas al supervisor si no estamos navegando a finanzas
+  if(!_finPanes.includes(paneId)){
+    _finPanes.forEach(fp=>{
+      const empPane = document.getElementById(fp);
+      const svPane  = document.getElementById(fp.replace('emp-','sv-'));
+      if(empPane && svPane && empPane.contains(svPane)){
+        document.querySelector('#app-supervisor .main-content').appendChild(svPane);
+      }
+    });
+  }
+  const showFilters = !['emp-inicio','emp-notas','emp-nueva','emp-clientes',..._finPanes].includes(paneId);
   document.getElementById('emp-filters').style.display = showFilters?'block':'none';
   if(showFilters) populateEmpFilters();
   if(paneId==='emp-inicio') renderEmpInicio();
@@ -1861,6 +1900,34 @@ function empNav(el, paneId){
   else if(paneId==='emp-faltas-prov') renderFaltasProv('emp-faltas-prov-content');
   else if(paneId==='emp-faltas-mun') renderFaltasMun('emp-faltas-mun-content');
   else if(paneId==='emp-clientes') renderEmpClientes();
+  else if(_finPanes.includes(paneId)){
+    const svId = paneId.replace('emp-','sv-');
+    ensureFinLoaded().then(()=>{
+      // Devolver cualquier pane de finanzas que haya sido movido anteriormente
+      _finPanes.forEach(fp=>{
+        const empPane = document.getElementById(fp);
+        const svPane  = document.getElementById(fp.replace('emp-','sv-'));
+        if(empPane && svPane && empPane.contains(svPane)){
+          // devolver al contenedor original del supervisor
+          document.querySelector('#app-supervisor .main-content').appendChild(svPane);
+        }
+      });
+      // Mover el pane del supervisor al pane del empleado
+      const empPane = document.getElementById(paneId);
+      const svPane  = document.getElementById(svId);
+      if(empPane && svPane) empPane.appendChild(svPane);
+      svPane.classList.add('active');
+      const fn = {
+        'emp-fin-resumen': renderResumen,
+        'emp-fin-honorarios': renderHonorarios,
+        'emp-fin-cuentas': renderCuentaCorriente,
+        'emp-fin-recurrentes': renderRecurrentes,
+        'emp-fin-gastos': renderGastos,
+        'emp-fin-resultados': renderEstadoResultados
+      }[paneId];
+      if(fn) fn();
+    });
+  }
   else renderEmpTareas();
 }
 
@@ -2060,13 +2127,9 @@ const areaMap={civil:'⚖️ Civil y Com.',laboral:'👷 Laboral',faltas:'🚨 F
 const areaClass={civil:'area-civil',laboral:'area-laboral',faltas:'area-faltas',administrativo:'area-admin',familia:'area-familia',otros:'area-otros'};
 function areaBadge(a){if(!a)return'';return`<span class="area-badge ${areaClass[a]||''}">${areaMap[a]||a}</span>`;}
 
-// Ordenamiento: 1? Turnos Web pendientes arriba, 2? fecha vencimiento (ASC, sin fecha al final), 3? nombre de tarea (A-Z)
+// Ordenamiento: 1? fecha vencimiento (ASC, sin fecha al final), 2? nombre de tarea (A-Z), 3? nombre de cliente (A-Z)
 function sortTareas(arr){
   return arr.slice().sort((a,b)=>{
-    const isWebTurnA=(a.nombre||'').startsWith('📅 Turno Web:')&&a.status!=='hecho';
-    const isWebTurnB=(b.nombre||'').startsWith('📅 Turno Web:')&&b.status!=='hecho';
-    if(isWebTurnA!==isWebTurnB) return isWebTurnA?-1:1;
-    
     const va=a.vence||'9999-99-99', vb=b.vence||'9999-99-99';
     if(va!==vb) return va<vb?-1:1;
     const na=(a.nombre||'').toLowerCase(), nb=(b.nombre||'').toLowerCase();
@@ -2094,11 +2157,8 @@ function buildTaskHTML(t, ctx){
     ?`<span style="${urgente?'color:var(--red);font-weight:600':''}">📅 ${fmtDate(t.vence)}${urgente?' ('+diasTxt+')':''}</span>`
     :`<span class="no-vence">Sin fecha fija</span>`;
 
-  const isWebTurn=(t.nombre||'').startsWith('📅 Turno Web:')&&t.status!=='hecho';
-  const webTurnStyle=isWebTurn?'border-left:3px solid var(--amber);background:rgba(245,158,11,0.03);':'';
-
   if(isSv){
-    return`<div class="task-item" id="task-item-${t.id}" style="${webTurnStyle}">
+    return`<div class="task-item" id="task-item-${t.id}">
       <div class="task-header-sv">
         ${urgente?'<div class="urgent-dot"></div>':'<div style="width:8px;flex-shrink:0"></div>'}
         <div class="task-body">
@@ -2139,7 +2199,7 @@ function buildTaskHTML(t, ctx){
       </div>
     </div>`;
   } else {
-    return`<div class="task-item" id="task-item-${t.id}" style="${webTurnStyle}">
+    return`<div class="task-item" id="task-item-${t.id}">
       <div class="task-header-emp">
         ${urgente?'<div class="urgent-dot"></div>':'<div style="width:8px;flex-shrink:0"></div>'}
         <div class="task-body" style="flex:1;min-width:0">
