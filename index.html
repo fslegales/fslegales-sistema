@@ -364,14 +364,15 @@ details[open] summary .details-arrow{transform:rotate(90deg)}
     z-index:99;
     padding:0;
     padding-bottom:env(safe-area-inset-bottom,0px);
-    overflow:hidden;
+    overflow-x:auto;
+    overflow-y:hidden;
     background:var(--surface);
     align-items:stretch;
   }
   .sidebar-section{display:none}
   .sidebar-divider{display:none}
   .sidebar-item{
-    flex:1;
+    flex:0 0 64px;
     flex-direction:column;
     justify-content:center;
     align-items:center;
