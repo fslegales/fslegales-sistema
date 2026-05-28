@@ -6602,61 +6602,77 @@ async function generarFaltaPDF(){
 
   let secNum = 2;
 
-  if(pedirPresc){
-    titulo(toRoman(secNum) + '. PRESCRIPCION DE LA INFRACCION');
-    parrafo('El articulo 89 de la Ley Nacional de Transito N 24.449, de aplicacion en el territorio de la Provincia de Buenos Aires, dispone que la prescripcion de la accion por falta grave se opera a los CINCO (5) anos. Habiendo transcurrido ampliamente dicho plazo desde la fecha de comision de la infraccion que se le atribuye al suscripto, sin que constara acto interruptivo valido debidamente notificado, la misma ha prescripto de pleno derecho.');
-    parrafo('En consecuencia, corresponde declarar extinguida la accion contravencional y disponer el archivo de las presentes actuaciones.');
-    secNum++;
-  }
+  // Secciones por acta
+  actas.forEach((a, idx) => {
+    const nActa = a.acta || '[ACTA ' + (idx+1) + ']';
+    const tituloActa = actas.length > 1 ? ' - ACTA N ' + nActa : '';
+    let subSecNum = 1;
+    const hayAlgo = a.presc || a.nulidad || a.morig || a.pagoSubsidio || a.pagoDirecto;
+    if (!hayAlgo) return;
 
-  if(pedirNulidad){
-    titulo(toRoman(secNum) + '. NULIDAD DEL ACTA');
-    parrafo('El suscripto solicita la declaracion de NULIDAD del acta labrada, en virtud de los siguientes vicios que afectan su validez formal y sustancial:');
-    let subNum = 1;
-    if(nulActa){
-      writeLine(subNum + '. Ilegibilidad del acta', fontTimesBold, 11);
-      skip(0.3);
-      parrafo('El acta de infraccion labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitucion Nacional.', 10);
-      subNum++;
+    if (actas.length > 1) {
+      titulo(toRoman(secNum) + '. RESPECTO DEL ACTA N ' + nActa);
+      secNum++;
     }
-    if(nulFoto){
-      writeLine(subNum + '. Ilegibilidad de la fotomulta respecto al dominio (patente)', fontTimesBold, 11);
-      skip(0.3);
-      parrafo('La fotografia o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehiculo infractor, impidiendo establecer con certeza que el vehiculo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribucion de la infraccion al vehiculo Dominio ' + (dominio||'[DOMINIO]') + ' y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta.', 10);
-      subNum++;
+
+    let subNum2 = actas.length > 1 ? 0 : secNum; // si hay subtitulos dentro de acta
+
+    if(a.presc){
+      const tit = actas.length > 1 ? (subSecNum++) + '.1.' : toRoman(secNum)+ '.';
+      titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PRESCRIPCION DE LA INFRACCION' + tituloActa);
+      parrafo('El articulo 89 de la Ley Nacional de Transito N 24.449, de aplicacion en el territorio de la Provincia de Buenos Aires, dispone que la prescripcion de la accion por falta grave se opera a los CINCO (5) anos. Habiendo transcurrido ampliamente dicho plazo desde la fecha de comision de la infraccion N ' + nActa + ', sin que constara acto interruptivo valido debidamente notificado, la misma ha prescripto de pleno derecho.');
+      parrafo('En consecuencia, corresponde declarar extinguida la accion contravencional y disponer el archivo de las presentes actuaciones.');
+      if(actas.length === 1) secNum++;
     }
-    if(!nulActa && !nulFoto) parrafo('[Especificar el motivo de nulidad]');
-    secNum++;
-  }
 
-  if(pedirMorig){
-    titulo(toRoman(secNum) + '. MORIGERACION DE LA SANCION');
-    parrafo('Sin perjuicio de lo anterior, y para el supuesto en que V.S. considerara acreditada la infraccion, el suscripto solicita la morigeracion de la sancion impuesta, con fundamento en los principios de razonabilidad y proporcionalidad de la pena.');
-    writeLine('1. Principio de proporcionalidad y razonabilidad', fontTimesBold, 11);
-    skip(0.3);
-    parrafo('La sancion impuesta debe guardar adecuada proporcion con la entidad real de la conducta reprochada. La Ley Nacional de Transito N 24.449 recepta expresamente el principio de proporcionalidad en su articulado, estableciendo un regimen graduado de infracciones segun su gravedad. Aplicar la maxima escala sancionatoria ante un exceso de escasa magnitud resulta contrario al principio de proporcionalidad que debe regir toda sancion administrativa. El principio de razonabilidad -con rango constitucional en virtud del art. 28 de la Constitucion Nacional- exige adecuacion entre la sancion y la falta cometida.', 10);
-    writeLine('2. Franquicia legal y margen de tolerancia', fontTimesBold, 11);
-    skip(0.3);
-    parrafo('La propia Ley N 24.449 reconoce la existencia de una franquicia implicita en materia de infracciones de velocidad, al exigir proporcionalidad entre la conducta y la respuesta estatal. Los equipos de medicion presentan margenes de error tecnico reconocidos por sus fabricantes y la normativa metrologica, lo que introduce razonable duda sobre la exactitud de la medicion cuando el exceso es de escasa magnitud.', 10);
-    writeLine('3. Ausencia de antecedentes infraccionales', fontTimesBold, 11);
-    skip(0.3);
-    parrafo('El suscripto no registra antecedentes de infracciones de transito, lo que acredita una conducta vial responsable y habitual, circunstancia que debe ser valorada positivamente al momento de graduar la sancion conforme los principios generales del derecho de faltas.', 10);
-    secNum++;
-  }
+    if(a.nulidad){
+      titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'NULIDAD DEL ACTA' + tituloActa);
+      parrafo('El suscripto solicita la declaracion de NULIDAD del acta N ' + nActa + ' labrada, en virtud de los siguientes vicios que afectan su validez formal y sustancial:');
+      let subNum = 1;
+      if(a.nulActa){
+        writeLine(subNum + '. Ilegibilidad del acta', fontTimesBold, 11);
+        skip(0.3);
+        parrafo('El acta de infraccion labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitucion Nacional.', 10);
+        subNum++;
+      }
+      if(a.nulFoto){
+        writeLine(subNum + '. Ilegibilidad de la fotomulta respecto al dominio (patente)', fontTimesBold, 11);
+        skip(0.3);
+        parrafo('La fotografia o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehiculo infractor, impidiendo establecer con certeza que el vehiculo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribucion de la infraccion al vehiculo Dominio ' + (a.dominio||'[DOMINIO]') + ' y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta.', 10);
+        subNum++;
+      }
+      if(!a.nulActa && !a.nulFoto) parrafo('[Especificar el motivo de nulidad]');
+      if(actas.length === 1) secNum++;
+    }
 
-  if(pedirPagoSubsidio){
-    titulo(toRoman(secNum) + '. PAGO VOLUNTARIO EN SUBSIDIO');
-    parrafo('Para el supuesto en que V.S. no hiciera lugar a las peticiones anteriores, el suscripto solicita se le permita acceder al pago voluntario de la multa, en ejercicio del derecho reconocido por la Ley Nacional de Transito N 24.449 y la Ley Provincial N 13.927 y su modificatoria Ley N 15.002, como mecanismo de regularizacion con los beneficios que ello conlleva.');
-    secNum++;
-  }
+    if(a.morig){
+      titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'MORIGERACION DE LA SANCION' + tituloActa);
+      parrafo('Sin perjuicio de lo anterior, y para el supuesto en que V.S. considerara acreditada la infraccion N ' + nActa + ', el suscripto solicita la morigeracion de la sancion impuesta, con fundamento en los principios de razonabilidad y proporcionalidad de la pena.');
+      writeLine('1. Principio de proporcionalidad y razonabilidad', fontTimesBold, 11);
+      skip(0.3);
+      parrafo('La sancion impuesta debe guardar adecuada proporcion con la entidad real de la conducta reprochada. La Ley Nacional de Transito N 24.449 recepta expresamente el principio de proporcionalidad en su articulado, estableciendo un regimen graduado de infracciones segun su gravedad. Aplicar la maxima escala sancionatoria ante un exceso de escasa magnitud resulta contrario al principio de proporcionalidad que debe regir toda sancion administrativa. El principio de razonabilidad -con rango constitucional en virtud del art. 28 de la Constitucion Nacional- exige adecuacion entre la sancion y la falta cometida.', 10);
+      writeLine('2. Franquicia legal y margen de tolerancia', fontTimesBold, 11);
+      skip(0.3);
+      parrafo('La propia Ley N 24.449 reconoce la existencia de una franquicia implicita en materia de infracciones de velocidad, al exigir proporcionalidad entre la conducta y la respuesta estatal. Los equipos de medicion presentan margenes de error tecnico reconocidos por sus fabricantes y la normativa metrologica, lo que introduce razonable duda sobre la exactitud de la medicion cuando el exceso es de escasa magnitud.', 10);
+      writeLine('3. Ausencia de antecedentes infraccionales', fontTimesBold, 11);
+      skip(0.3);
+      parrafo('El suscripto no registra antecedentes de infracciones de transito, lo que acredita una conducta vial responsable y habitual, circunstancia que debe ser valorada positivamente al momento de graduar la sancion conforme los principios generales del derecho de faltas.', 10);
+      if(actas.length === 1) secNum++;
+    }
 
-  if(pedirPagoDirecto){
-    titulo(toRoman(secNum) + '. PAGO VOLUNTARIO');
-    const actasPago = actas.filter(a=>a.pagoDirecto).map(a=>a.acta||'[ACTA]').join(', ');
-    parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la/s multa/s correspondiente/s al/las Acta/s N ' + actasPago + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
-    parrafo('Ley Nacional de Transito N 24.449, arts. 72 y ss. Decreto Reglamentario N 779/95. Ley Provincial N 13.927 y su modificatoria Ley N 15.002.');
-    secNum++;
-  }
+    if(a.pagoSubsidio){
+      titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PAGO VOLUNTARIO EN SUBSIDIO' + tituloActa);
+      parrafo('Para el supuesto en que V.S. no hiciera lugar a las peticiones anteriores respecto del Acta N ' + nActa + ', el suscripto solicita se le permita acceder al pago voluntario de la multa, en ejercicio del derecho reconocido por la Ley Nacional de Transito N 24.449 y la Ley Provincial N 13.927 y su modificatoria Ley N 15.002, como mecanismo de regularizacion con los beneficios que ello conlleva.');
+      if(actas.length === 1) secNum++;
+    }
+
+    if(a.pagoDirecto){
+      titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PAGO VOLUNTARIO' + tituloActa);
+      parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la multa correspondiente al Acta N ' + nActa + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
+      parrafo('Ley Nacional de Transito N 24.449, arts. 72 y ss. Decreto Reglamentario N 779/95. Ley Provincial N 13.927 y su modificatoria Ley N 15.002.');
+      if(actas.length === 1) secNum++;
+    }
+  });
 
   if(pedirProrroga){
     titulo(toRoman(secNum) + '. PRORROGA DE JURISDICCION');
@@ -6674,12 +6690,16 @@ async function generarFaltaPDF(){
   parrafo('Por todo lo expuesto, solicito a V.S. que:');
   let petNum = 1;
   writeLine(petNum++ + ') Tenga por presentado el presente descargo en legal tiempo y forma.', fontTimes, 11, 15);
-  if(pedirProrroga)     writeLine(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', fontTimes, 11, 15);
-  if(pedirPresc)        writeLine(petNum++ + ') Declare prescripta la infraccion imputada y disponga el archivo de las actuaciones.', fontTimes, 11, 15);
-  if(pedirNulidad)      writeLine(petNum++ + ') Declare la NULIDAD de las actas indicadas por los vicios formales denunciados.', fontTimes, 11, 15);
-  if(pedirMorig)        writeLine(petNum++ + ') Aplique los principios de razonabilidad y proporcionalidad, morigerando la sancion al minimo legal.', fontTimes, 11, 15);
-  if(pedirPagoSubsidio) writeLine(petNum++ + ') En subsidio de lo anterior, autorice el acceso al pago voluntario con los beneficios de ley.', fontTimes, 11, 15);
-  if(pedirPagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario de las infracciones indicadas y proceda conforme a derecho.', fontTimes, 11, 15);
+  if(pedirProrroga) writeLine(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', fontTimes, 11, 15);
+  actas.forEach(a => {
+    const nActa = a.acta || '[ACTA]';
+    const suf = actas.length > 1 ? ' (Acta N ' + nActa + ')' : '';
+    if(a.presc)        writeLine(petNum++ + ') Declare prescripta la infraccion N ' + nActa + ' y disponga el archivo de las actuaciones.', fontTimes, 11, 15);
+    if(a.nulidad)      writeLine(petNum++ + ') Declare la NULIDAD del Acta N ' + nActa + ' por los vicios formales denunciados.', fontTimes, 11, 15);
+    if(a.morig)        writeLine(petNum++ + ') Morigere la sancion del Acta N ' + nActa + ' aplicando los principios de razonabilidad y proporcionalidad.', fontTimes, 11, 15);
+    if(a.pagoSubsidio) writeLine(petNum++ + ') En subsidio, autorice el acceso al pago voluntario del Acta N ' + nActa + ' con los beneficios de ley.', fontTimes, 11, 15);
+    if(a.pagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario del Acta N ' + nActa + ' y proceda conforme a derecho.', fontTimes, 11, 15);
+  });
   writeLine(petNum++ + ') Provea de conformidad, pues es de JUSTICIA.', fontTimes, 11, 15);
   skip();
   writeLine('Sin otro particular, saludo a Ud. atentamente.', fontTimes, 11);
