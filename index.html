@@ -5975,6 +5975,42 @@ function renderFaltasProv(containerId){
 
     <div id="fp-pane-desc">
 
+      <!-- CARGA AUTOMÁTICA -->
+      <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
+          <span style="font-size:18px">🤖</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automáticamente</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:1px">Subí el acta PDF y la foto del DNI frente — el sistema completa todos los campos</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">📄 Acta de infracción (PDF)</div>
+            <label id="fp-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2);transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:28px">📄</span>
+              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
+              <input type="file" accept="application/pdf" style="display:none" onchange="fpAutoCargarArchivo('acta', this)">
+            </label>
+            <div id="fp-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">🪪 DNI frente (foto)</div>
+            <label id="fp-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2);transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:28px">🪪</span>
+              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
+              <input type="file" accept="image/*" style="display:none" onchange="fpAutoCargarArchivo('dni', this)">
+            </label>
+            <div id="fp-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+          </div>
+        </div>
+        <button id="fp-auto-btn" onclick="fpAutoCompletar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span id="fp-auto-btn-icon">✨</span>
+          <span id="fp-auto-btn-text">Completar datos automáticamente</span>
+        </button>
+        <div id="fp-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="card" style="padding:20px">
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
@@ -6101,6 +6137,155 @@ function renderFaltasProv(containerId){
     </div>
   </div>`;
 }
+
+// ---- CARGA AUTOMÁTICA CON IA ----
+const fpAutoArchivos = { acta: null, dni: null };
+
+function fpAutoCargarArchivo(tipo, input){
+  const file = input.files[0];
+  if(!file) return;
+  fpAutoArchivos[tipo] = file;
+  const nombreEl = document.getElementById(`fp-auto-${tipo}-nombre`);
+  nombreEl.textContent = '✓ ' + file.name;
+  nombreEl.style.display = 'block';
+}
+
+async function fpAutoCompletar(){
+  const btn     = document.getElementById('fp-auto-btn');
+  const btnText = document.getElementById('fp-auto-btn-text');
+  const btnIcon = document.getElementById('fp-auto-btn-icon');
+  const status  = document.getElementById('fp-auto-status');
+
+  if(!fpAutoArchivos.acta && !fpAutoArchivos.dni){
+    status.style.display = 'block';
+    status.style.color = 'var(--red, #e55)';
+    status.textContent = 'Subí al menos el acta PDF o el DNI para continuar.';
+    return;
+  }
+
+  // UI: loading
+  btn.disabled = true;
+  btnIcon.textContent = '⏳';
+  btnText.textContent = 'Leyendo documentos...';
+  status.style.display = 'block';
+  status.style.color = 'var(--text3)';
+  status.textContent = 'Enviando a la IA...';
+
+  try {
+    const mensajeContenido = [];
+
+    // Agregar acta PDF si existe
+    if(fpAutoArchivos.acta){
+      const actaB64 = await fpAutoLeerBase64(fpAutoArchivos.acta);
+      mensajeContenido.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: actaB64 }
+      });
+    }
+
+    // Agregar foto DNI si existe
+    if(fpAutoArchivos.dni){
+      const dniB64 = await fpAutoLeerBase64(fpAutoArchivos.dni);
+      const dniMime = fpAutoArchivos.dni.type || 'image/jpeg';
+      mensajeContenido.push({
+        type: 'image',
+        source: { type: 'base64', media_type: dniMime, data: dniB64 }
+      });
+    }
+
+    mensajeContenido.push({
+      type: 'text',
+      text: `Analizá los documentos adjuntos (acta de infracción de tránsito de la Provincia de Buenos Aires y/o foto de DNI argentino) y extraé los siguientes datos. Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones:
+
+{
+  "nombre": "nombre y apellido completo del titular (del DNI si está disponible)",
+  "dni": "número de DNI sin puntos",
+  "domicilio": "domicilio completo del DNI",
+  "dominio": "patente/dominio del vehículo",
+  "vehiculo": "marca, modelo, año del vehículo",
+  "acta": "número de acta de infracción completo",
+  "fechaacta": "fecha y hora de la infracción en formato dd/mm/aaaa – HH:MM hs.",
+  "lugar": "lugar donde se cometió la infracción",
+  "velocidad": "velocidad registrada si aparece, si no dejar vacío",
+  "equipo": "marca y modelo del equipo de medición si aparece",
+  "juzgado": "partido o localidad del juzgado si aparece",
+  "importe": "importe de la multa si aparece"
+}
+
+Si algún dato no aparece en los documentos, dejá el campo como cadena vacía "". No inventes datos.`
+    });
+
+    status.textContent = 'Procesando con IA...';
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: mensajeContenido }]
+      })
+    });
+
+    if(!resp.ok) throw new Error('Error API: ' + resp.status);
+
+    const data = await resp.json();
+    const texto = data.content.map(b => b.text || '').join('');
+    const jsonStr = texto.replace(/```json|```/g, '').trim();
+    const campos = JSON.parse(jsonStr);
+
+    // Completar los campos del formulario
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if(el && val) el.value = val;
+    };
+
+    set('fp-d-nombre',    campos.nombre);
+    set('fp-d-dni',       campos.dni);
+    set('fp-d-domicilio', campos.domicilio);
+    set('fp-d-dominio',   campos.dominio);
+    set('fp-d-vehiculo',  campos.vehiculo);
+    set('fp-d-acta',      campos.acta);
+    set('fp-d-fechaacta', campos.fechaacta);
+    set('fp-d-lugar',     campos.lugar);
+    set('fp-d-velocidad', campos.velocidad);
+    set('fp-d-juzgado',   campos.juzgado);
+
+    // UI: éxito
+    btnIcon.textContent = '✅';
+    btnText.textContent = 'Datos completados';
+    btn.style.background = 'var(--green, #2a9d5c)';
+    status.style.color = 'var(--green, #2a9d5c)';
+    const completados = Object.values(campos).filter(v=>v).length;
+    status.textContent = `✓ Se completaron ${completados} campos automáticamente. Revisá y ajustá si es necesario.`;
+
+    setTimeout(()=>{
+      btn.disabled = false;
+      btnIcon.textContent = '✨';
+      btnText.textContent = 'Volver a completar';
+      btn.style.background = 'var(--accent)';
+    }, 4000);
+
+  } catch(err) {
+    console.error(err);
+    btnIcon.textContent = '❌';
+    btnText.textContent = 'Completar datos automáticamente';
+    btn.disabled = false;
+    btn.style.background = 'var(--accent)';
+    status.style.color = 'var(--red, #e55)';
+    status.textContent = 'Error al procesar los documentos. Verificá tu conexión e intentá de nuevo.';
+  }
+}
+
+function fpAutoLeerBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+// ---- FIN CARGA AUTOMÁTICA ----
 
 function fpDescToggle(){
   const nulChecked = document.getElementById('fp-d-nulidad')?.checked;
