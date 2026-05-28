@@ -6707,7 +6707,8 @@ async function generarFaltaPDF(){
   writeLine(nombre||'[NOMBRE]', fontTimesBold, 11);
   writeLine('DNI N ' + (dni||'[DNI]'), fontTimes, 11);
   writeLine(caracter, fontTimes, 11);
-  actas.forEach(a => { if(a.dominio) writeLine('Dominio ' + a.dominio + (a.vehiculo ? ' - ' + a.vehiculo : ''), fontTimes, 11); });
+  const primerActa = actas.find(a => a.dominio);
+  if(primerActa) writeLine('Dominio ' + primerActa.dominio + (primerActa.vehiculo ? ' - ' + primerActa.vehiculo : ''), fontTimes, 11);
 
   await fpAgregarDniAlPDF(pdfDoc, 'd');
 
