@@ -6434,8 +6434,8 @@ async function generarFaltaPDF(){
   const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
   const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
   // Detectar cual panel esta activo
-  const gv  = id => document.querySelector('#'+id)?.value || '';
-  const cb  = id => document.querySelector('#'+id)?.checked || false;
+  const gv  = id => (window._fpData && window._fpData[id] !== undefined) ? window._fpData[id] : (document.querySelector('#'+id)?.value || '');
+  const cb  = id => (window._fpData && window._fpData[id] !== undefined) ? window._fpData[id] : (document.querySelector('#'+id)?.checked || false);
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
 
   const nombre    = gv('fp-d-nombre');
@@ -7485,5 +7485,18 @@ async function renderEstadisticas(){
 }
 </script>
 
+<script>
+window._fpData = {};
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id && e.target.id.startsWith('fp-')){
+    window._fpData[e.target.id] = e.target.value;
+  }
+});
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id && e.target.id.startsWith('fp-')){
+    window._fpData[e.target.id] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+  }
+});
+</script>
 </body>
 </html>
