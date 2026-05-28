@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <title>FS Legales</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" crossorigin="anonymous"></script>
@@ -6340,9 +6343,7 @@ async function fpAutoCompletar(){
     const jsonStr = texto.replace(/```json|```/g,'').trim();
     const campos = JSON.parse(jsonStr);
 
-    const empPane2 = document.getElementById('emp-faltas-prov');
-    const pfx2 = (empPane2 && empPane2.classList.contains('active')) ? 'fp-e-' : 'fp-d-';
-    const set = (id, val) => { const el = document.getElementById(id.replace('fp-d-', pfx2)); if(el && val) el.value = val; };
+    const set = (id, val) => { const el = document.querySelector('#'+id); if(el && val) el.value = val; };
     set('fp-d-nombre',    campos.nombre);
     set('fp-d-dni',       campos.dni);
     set('fp-d-domicilio', campos.domicilio);
@@ -6433,10 +6434,8 @@ async function generarFaltaPDF(){
   const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
   const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
   // Detectar cual panel esta activo
-  const empPane = document.getElementById('emp-faltas-prov');
-  const pfx = (empPane && empPane.classList.contains('active')) ? 'fp-e-' : 'fp-d-';
-  const gv  = id => (document.getElementById(id.replace('fp-d-', pfx))||document.getElementById(id)||{}).value||'';
-  const cb  = id => (document.getElementById(id.replace('fp-d-', pfx))||document.getElementById(id))?.checked || false;
+  const gv  = id => document.querySelector('#'+id)?.value || '';
+  const cb  = id => document.querySelector('#'+id)?.checked || false;
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
 
   const nombre    = gv('fp-d-nombre');
