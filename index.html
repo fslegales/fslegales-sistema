@@ -677,7 +677,149 @@ tr.clickable{cursor:pointer}
         <div id="sv-carta-doc-content"></div>
       </div>
       <div id="sv-faltas-prov" class="tab-pane">
-        <div id="sv-faltas-prov-content"></div>
+        <div id="sv-faltas-prov-content">
+  <div style="max-width:860px;margin:0 auto">
+    <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Juzgado de Faltas - Provincia de Buenos Aires</div>
+
+    <!-- CARGA AUTOMATICA -->
+    <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
+        <span style="font-size:18px">&#129302;</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automaticamente</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:1px">Subi el acta PDF y la foto del DNI frente - el sistema completa todos los campos</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Acta de infraccion (PDF)</div>
+          <label id="fp-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#128196;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" id="fp-auto-acta-input" accept="application/pdf" style="display:none">
+          </label>
+          <div id="fp-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">DNI frente (foto)</div>
+          <label id="fp-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" id="fp-auto-dni-input" accept="image/*" style="display:none">
+          </label>
+          <div id="fp-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+        </div>
+      </div>
+      <button id="fp-auto-btn" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span id="fp-auto-btn-icon">&#10024;</span>
+        <span id="fp-auto-btn-text">Completar datos automaticamente</span>
+      </button>
+      <div id="fp-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
+    </div>
+
+    <!-- DATOS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Nombre y apellido</label><input id="fp-d-nombre" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juan Carlos Perez"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">DNI</label><input id="fp-d-dni" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="31.779.967"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Domicilio legal</label><input id="fp-d-domicilio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Bahia Blanca, Prov. Buenos Aires"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Caracter</label><input id="fp-d-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehiculo"></div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehiculo e infraccion</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-d-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="fp-d-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 2008"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="fp-d-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora</label><input id="fp-d-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-d-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N 22, km 733"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada</label><input id="fp-d-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-d-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov."></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKBOXES -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-presc')">
+          <input type="checkbox" id="fp-d-presc" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion (art. 89, Ley 24.449 - 5 anos)</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-morig')">
+          <input type="checkbox" id="fp-d-morig" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo - razonabilidad y proporcionalidad (Ley 24.449)</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-nulidad')">
+          <input type="checkbox" id="fp-d-nulidad" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o fotomulta respecto al dominio</div></div>
+        </div>
+        <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-d-nul-acta')">
+            <input type="checkbox" id="fp-d-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
+            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad del acta</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-d-nul-foto')">
+            <input type="checkbox" id="fp-d-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
+            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad de la fotomulta respecto al dominio (patente)</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-subsidio')">
+          <input type="checkbox" id="fp-d-pago-subsidio" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div><div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-directo')">
+          <input type="checkbox" id="fp-d-pago-directo" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Presentacion directa al pago</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-prorroga')">
+          <input type="checkbox" id="fp-d-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar el juzgado mas cercano al domicilio</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXTRA -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Argumentos adicionales (opcional)</div>
+      <textarea id="fp-d-extra" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);font-size:13px;min-height:90px;resize:vertical" placeholder="Agrega cualquier argumento particular..."></textarea>
+    </div>
+
+    <!-- DNI -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">DNI del titular (se adjunta al PDF)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Frente</div>
+          <label id="fp-d-dni-frente-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','frente',this)">
+          </label>
+          <img id="fp-d-dni-frente-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Dorso</div>
+          <label id="fp-d-dni-dorso-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','dorso',this)">
+          </label>
+          <img id="fp-d-dni-dorso-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-dark" id="fp-generar-btn" style="background:var(--accent);color:#fff">Generar PDF</button>
+    </div>
+  </div>
+</div>
       </div>
       <div id="sv-faltas-mun" class="tab-pane">
         <div id="sv-faltas-mun-content"></div>
@@ -1347,7 +1489,149 @@ tr.clickable{cursor:pointer}
         <div id="emp-carta-doc-content"></div>
       </div>
       <div id="emp-faltas-prov" class="tab-pane">
-        <div id="emp-faltas-prov-content"></div>
+        <div id="emp-faltas-prov-content">
+  <div style="max-width:860px;margin:0 auto">
+    <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Juzgado de Faltas - Provincia de Buenos Aires</div>
+
+    <!-- CARGA AUTOMATICA -->
+    <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
+        <span style="font-size:18px">&#129302;</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automaticamente</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:1px">Subi el acta PDF y la foto del DNI frente - el sistema completa todos los campos</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Acta de infraccion (PDF)</div>
+          <label id="fp-e-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#128196;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" id="fp-e-auto-acta-input" accept="application/pdf" style="display:none">
+          </label>
+          <div id="fp-e-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">DNI frente (foto)</div>
+          <label id="fp-e-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" id="fp-e-auto-dni-input" accept="image/*" style="display:none">
+          </label>
+          <div id="fp-e-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+        </div>
+      </div>
+      <button id="fp-e-auto-btn" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span id="fp-e-auto-btn-icon">&#10024;</span>
+        <span id="fp-e-auto-btn-text">Completar datos automaticamente</span>
+      </button>
+      <div id="fp-e-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
+    </div>
+
+    <!-- DATOS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Nombre y apellido</label><input id="fp-e-nombre" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juan Carlos Perez"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">DNI</label><input id="fp-e-dni" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="31.779.967"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Domicilio legal</label><input id="fp-e-domicilio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Bahia Blanca, Prov. Buenos Aires"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Caracter</label><input id="fp-e-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehiculo"></div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehiculo e infraccion</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-e-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="fp-e-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 2008"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="fp-e-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora</label><input id="fp-e-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-e-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N 22, km 733"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada</label><input id="fp-e-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-e-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov."></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKBOXES -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-presc')">
+          <input type="checkbox" id="fp-e-presc" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion (art. 89, Ley 24.449 - 5 anos)</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-morig')">
+          <input type="checkbox" id="fp-e-morig" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo - razonabilidad y proporcionalidad (Ley 24.449)</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-nulidad')">
+          <input type="checkbox" id="fp-e-nulidad" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o fotomulta respecto al dominio</div></div>
+        </div>
+        <div id="fp-e-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-e-nul-acta')">
+            <input type="checkbox" id="fp-e-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
+            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad del acta</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-e-nul-foto')">
+            <input type="checkbox" id="fp-e-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
+            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad de la fotomulta respecto al dominio (patente)</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-pago-subsidio')">
+          <input type="checkbox" id="fp-e-pago-subsidio" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div><div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-pago-directo')">
+          <input type="checkbox" id="fp-e-pago-directo" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Presentacion directa al pago</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-e-prorroga')">
+          <input type="checkbox" id="fp-e-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar el juzgado mas cercano al domicilio</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXTRA -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Argumentos adicionales (opcional)</div>
+      <textarea id="fp-e-extra" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);font-size:13px;min-height:90px;resize:vertical" placeholder="Agrega cualquier argumento particular..."></textarea>
+    </div>
+
+    <!-- DNI -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">DNI del titular (se adjunta al PDF)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Frente</div>
+          <label id="fp-e-dni-frente-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','frente',this)">
+          </label>
+          <img id="fp-e-dni-frente-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Dorso</div>
+          <label id="fp-e-dni-dorso-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','dorso',this)">
+          </label>
+          <img id="fp-e-dni-dorso-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-dark" id="fp-e-generar-btn" style="background:var(--accent);color:#fff">Generar PDF</button>
+    </div>
+  </div>
+</div>
       </div>
       <div id="emp-faltas-mun" class="tab-pane">
         <div id="emp-faltas-mun-content"></div>
@@ -5966,180 +6250,22 @@ if(typeof supabase==='undefined'){
 
 // FALTAS PROVINCIALES
 function renderFaltasProv(containerId){
-  const cont = document.getElementById(containerId);
-  if(!cont) return;
-  if(cont.dataset.fpRendered) return;
-  cont.dataset.fpRendered = '1';
-  cont.innerHTML = `
-  <div style="max-width:860px;margin:0 auto">
-    <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Juzgado de Faltas - Provincia de Buenos Aires</div>
-
-    <!-- CARGA AUTOMATICA -->
-    <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
-        <span style="font-size:18px">&#129302;</span>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automaticamente</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:1px">Subi el acta PDF y la foto del DNI frente - el sistema completa todos los campos</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Acta de infraccion (PDF)</div>
-          <label id="fp-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
-            <span style="font-size:28px">&#128196;</span>
-            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
-            <input type="file" accept="application/pdf" style="display:none" onchange="fpAutoCargarArchivo('acta', this)">
-          </label>
-          <div id="fp-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">DNI frente (foto)</div>
-          <label id="fp-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
-            <span style="font-size:28px">&#129330;</span>
-            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
-            <input type="file" accept="image/*" style="display:none" onchange="fpAutoCargarArchivo('dni', this)">
-          </label>
-          <div id="fp-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
-        </div>
-      </div>
-      <button id="fp-auto-btn" onclick="fpAutoCompletar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span id="fp-auto-btn-icon">&#10024;</span>
-        <span id="fp-auto-btn-text">Completar datos automaticamente</span>
-      </button>
-      <div id="fp-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
-    </div>
-
-    <!-- DATOS -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card" style="padding:20px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Nombre y apellido</label><input id="fp-d-nombre" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juan Carlos Perez"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">DNI</label><input id="fp-d-dni" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="31.779.967"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Domicilio legal</label><input id="fp-d-domicilio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Bahia Blanca, Prov. Buenos Aires"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Caracter</label><input id="fp-d-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehiculo"></div>
-        </div>
-      </div>
-      <div class="card" style="padding:20px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehiculo e infraccion</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-d-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="fp-d-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 5 Ptas Pack Plus 2008"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="fp-d-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora del acta</label><input id="fp-d-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-d-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N 22, km 733"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada / limite</label><input id="fp-d-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-d-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov. - Dr. Jorge Vicente"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CHECKBOXES -->
-    <div class="card" style="padding:20px;margin-top:16px">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar - tilda lo que corresponde</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-presc')">
-          <input type="checkbox" id="fp-d-presc" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion de la infraccion (art. 89, Ley 24.449 - 5 anos)</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-morig')">
-          <input type="checkbox" id="fp-d-morig" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo de velocidad - razonabilidad y proporcionalidad de la pena (Ley 24.449)</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-nulidad')">
-          <input type="checkbox" id="fp-d-nulidad" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion de la infraccion</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o de la fotomulta respecto al dominio</div>
-          </div>
-        </div>
-
-        <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <input type="checkbox" id="fp-d-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-            <label for="fp-d-nul-acta" style="font-size:12px;color:var(--text1);cursor:pointer;user-select:none">Ilegibilidad del acta</label>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <input type="checkbox" id="fp-d-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-            <label for="fp-d-nul-foto" style="font-size:12px;color:var(--text1);cursor:pointer;user-select:none">Ilegibilidad de la fotomulta respecto al dominio (patente)</label>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-subsidio')">
-          <input type="checkbox" id="fp-d-pago-subsidio" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion solicitada</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-directo')">
-          <input type="checkbox" id="fp-d-pago-directo" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Sin solicitar otra cosa - presentacion directa al pago</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-prorroga')">
-          <input type="checkbox" id="fp-d-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar que intervenga el juzgado mas cercano al domicilio del presentante</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- HECHOS -->
-    <div class="card" style="padding:20px;margin-top:16px">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Hechos y argumentos particulares (opcional)</div>
-      <textarea id="fp-d-extra" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);font-size:13px;min-height:90px;resize:vertical" placeholder="Agrega aqui cualquier argumento particular de esta causa..."></textarea>
-    </div>
-
-    <!-- DNI -->
-    <div class="card" style="padding:20px;margin-top:16px">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">DNI del titular (se adjunta al final del PDF)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Frente</div>
-          <label id="fp-d-dni-frente-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
-            <span style="font-size:24px">&#129330;</span>
-            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
-            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','frente',this)">
-          </label>
-          <img id="fp-d-dni-frente-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Dorso</div>
-          <label id="fp-d-dni-dorso-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
-            <span style="font-size:24px">&#129330;</span>
-            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
-            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','dorso',this)">
-          </label>
-          <img id="fp-d-dni-dorso-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-dark" onclick="generarFaltaPDF()" style="background:var(--accent);color:#fff">Generar PDF</button>
-    </div>
-
-  </div>`;
+  // HTML ya esta en el DOM estatico - solo conectar eventos
+  const btn = document.getElementById('fp-auto-btn') || document.getElementById('fp-e-auto-btn');
+  if(btn && !btn._fpInit) {
+    btn._fpInit = true;
+    btn.onclick = fpAutoCompletar;
+    // Conectar inputs de archivo
+    const actaInput = document.getElementById('fp-auto-acta-input') || document.getElementById('fp-e-auto-acta-input');
+    const dniInput  = document.getElementById('fp-auto-dni-input')  || document.getElementById('fp-e-auto-dni-input');
+    if(actaInput) actaInput.onchange = function(){ fpAutoCargarArchivo('acta', this); };
+    if(dniInput)  dniInput.onchange  = function(){ fpAutoCargarArchivo('dni',  this); };
+    // Boton generar
+    const genBtn = document.getElementById('fp-generar-btn') || document.getElementById('fp-e-generar-btn');
+    if(genBtn) genBtn.onclick = generarFaltaPDF;
+  }
 }
+
 
 function fpCbToggle(id){
   const cb = document.getElementById(id);
@@ -6214,7 +6340,9 @@ async function fpAutoCompletar(){
     const jsonStr = texto.replace(/```json|```/g,'').trim();
     const campos = JSON.parse(jsonStr);
 
-    const set = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+    const empPane2 = document.getElementById('emp-faltas-prov');
+    const pfx2 = (empPane2 && empPane2.classList.contains('active')) ? 'fp-e-' : 'fp-d-';
+    const set = (id, val) => { const el = document.getElementById(id.replace('fp-d-', pfx2)); if(el && val) el.value = val; };
     set('fp-d-nombre',    campos.nombre);
     set('fp-d-dni',       campos.dni);
     set('fp-d-domicilio', campos.domicilio);
@@ -6304,12 +6432,11 @@ async function generarFaltaPDF(){
   const skip    = (n=1) => { y -= lineH * n; };
   const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
   const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
-  // Buscar en el contenedor activo (puede ser sv o emp)
-  const fpCont = document.querySelector('[data-fp-rendered]') ||
-                 document.getElementById('sv-faltas-prov-content') ||
-                 document.getElementById('emp-faltas-prov-content');
-  const gv  = id => (fpCont?.querySelector('#'+id)||document.getElementById(id)||{}).value||'';
-  const cb  = id => (fpCont?.querySelector('#'+id)||document.getElementById(id))?.checked || false;
+  // Detectar cual panel esta activo
+  const empPane = document.getElementById('emp-faltas-prov');
+  const pfx = (empPane && empPane.classList.contains('active')) ? 'fp-e-' : 'fp-d-';
+  const gv  = id => (document.getElementById(id.replace('fp-d-', pfx))||document.getElementById(id)||{}).value||'';
+  const cb  = id => (document.getElementById(id.replace('fp-d-', pfx))||document.getElementById(id))?.checked || false;
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
 
   const nombre    = gv('fp-d-nombre');
