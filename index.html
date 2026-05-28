@@ -5971,182 +5971,189 @@ function renderFaltasProv(containerId){
   cont.innerHTML = `
   <div style="max-width:860px;margin:0 auto">
     <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Juzgado de Faltas – Provincia de Buenos Aires</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Juzgado de Faltas - Provincia de Buenos Aires</div>
 
-    <div id="fp-pane-desc">
-
-      <!-- CARGA AUTOMÁTICA -->
-      <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
-          <span style="font-size:18px">🤖</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automáticamente</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:1px">Subí el acta PDF y la foto del DNI frente — el sistema completa todos los campos</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">📄 Acta de infracción (PDF)</div>
-            <label id="fp-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2);transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-              <span style="font-size:28px">📄</span>
-              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
-              <input type="file" accept="application/pdf" style="display:none" onchange="fpAutoCargarArchivo('acta', this)">
-            </label>
-            <div id="fp-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">🪪 DNI frente (foto)</div>
-            <label id="fp-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2);transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-              <span style="font-size:28px">🪪</span>
-              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
-              <input type="file" accept="image/*" style="display:none" onchange="fpAutoCargarArchivo('dni', this)">
-            </label>
-            <div id="fp-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
-          </div>
-        </div>
-        <button id="fp-auto-btn" onclick="fpAutoCompletar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-          <span id="fp-auto-btn-icon">✨</span>
-          <span id="fp-auto-btn-text">Completar datos automáticamente</span>
-        </button>
-        <div id="fp-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="card" style="padding:20px">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Nombre y apellido</label><input id="fp-d-nombre" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juan Carlos Pérez"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">DNI</label><input id="fp-d-dni" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="31.779.967"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Domicilio legal</label><input id="fp-d-domicilio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Bahía Blanca, Prov. Buenos Aires"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Carácter</label><input id="fp-d-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehículo"></div>
-          </div>
-        </div>
-        <div class="card" style="padding:20px">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehículo e infracción</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-d-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehículo</label><input id="fp-d-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 5 Ptas Pack Plus Año 2008"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N° de Acta</label><input id="fp-d-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora del acta</label><input id="fp-d-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 – 14:10 hs."></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-d-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N° 22, km 733"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada / límite</label><input id="fp-d-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre límite de 80 km/h"></div>
-            <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-d-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov. – Dr. Jorge Vicente"></div>
-          </div>
+    <!-- CARGA AUTOMATICA -->
+    <div class="card" style="padding:20px;margin-bottom:16px;border:2px solid var(--accent);border-radius:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
+        <span style="font-size:18px">&#129302;</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text1)">Completar datos automaticamente</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:1px">Subi el acta PDF y la foto del DNI frente - el sistema completa todos los campos</div>
         </div>
       </div>
-
-      <div class="card" style="padding:20px;margin-top:16px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">¿Qué solicitar? — tildá lo que corresponde</div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-presc" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-presc" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripción</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaración de prescripción de la infracción (art. 89, Ley 24.449 – 5 años)</div>
-            </label>
-          </div>
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-morig" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-morig" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeración</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso mínimo de velocidad — razonabilidad y proporcionalidad de la pena (Ley 24.449)</div>
-            </label>
-          </div>
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-nulidad" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-nulidad" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualización de la infracción</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o de la fotomulta respecto al dominio</div>
-            </label>
-          </div>
-
-          <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <input type="checkbox" id="fp-d-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);margin-top:1px;flex-shrink:0;cursor:pointer">
-              <label for="fp-d-nul-acta" style="font-size:12px;color:var(--text1);cursor:pointer">Ilegibilidad del acta</label>
-            </div>
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <input type="checkbox" id="fp-d-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);margin-top:1px;flex-shrink:0;cursor:pointer">
-              <label for="fp-d-nul-foto" style="font-size:12px;color:var(--text1);cursor:pointer">Ilegibilidad de la fotomulta respecto al dominio (patente)</label>
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-pago-subsidio" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-pago-subsidio" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeración solicitada</div>
-            </label>
-          </div>
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-pago-directo" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-pago-directo" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Sin solicitar otra cosa — presentación directa al pago</div>
-            </label>
-          </div>
-
-          <div style="display:flex;align-items:flex-start;gap:12px">
-            <input type="checkbox" id="fp-d-prorroga" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer">
-            <label for="fp-d-prorroga" style="cursor:pointer">
-              <div style="font-size:13px;font-weight:600;color:var(--text1)">Prórroga de jurisdicción</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar que intervenga el juzgado más cercano al domicilio del presentante</div>
-            </label>
-          </div>
-
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Acta de infraccion (PDF)</div>
+          <label id="fp-auto-acta-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#128196;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="application/pdf" style="display:none" onchange="fpAutoCargarArchivo('acta', this)">
+          </label>
+          <div id="fp-auto-acta-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">DNI frente (foto)</div>
+          <label id="fp-auto-dni-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:6px;min-height:90px;background:var(--bg2)">
+            <span style="font-size:28px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpAutoCargarArchivo('dni', this)">
+          </label>
+          <div id="fp-auto-dni-nombre" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;display:none"></div>
         </div>
       </div>
-
-      <div class="card" style="padding:20px;margin-top:16px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Hechos y argumentos particulares (opcional)</div>
-        <textarea id="fp-d-extra" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);font-size:13px;min-height:90px;resize:vertical" placeholder="Agregá aquí cualquier argumento particular de esta causa..."></textarea>
-      </div>
-
-      <div class="card" style="padding:20px;margin-top:16px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">📎 DNI del titular (se adjunta al final del PDF)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Frente</div>
-            <label id="fp-d-dni-frente-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
-              <span style="font-size:24px">🪪</span>
-              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
-              <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','frente',this)">
-            </label>
-            <img id="fp-d-dni-frente-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Dorso</div>
-            <label id="fp-d-dni-dorso-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
-              <span style="font-size:24px">🪪</span>
-              <span style="font-size:12px;color:var(--text3)">Arrastrá o hacé clic</span>
-              <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','dorso',this)">
-            </label>
-            <img id="fp-d-dni-dorso-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-dark" onclick="generarFaltaPDF()" style="background:var(--accent);color:#fff">📄 Generar PDF</button>
-      </div>
-
+      <button id="fp-auto-btn" onclick="fpAutoCompletar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span id="fp-auto-btn-icon">&#10024;</span>
+        <span id="fp-auto-btn-text">Completar datos automaticamente</span>
+      </button>
+      <div id="fp-auto-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;color:var(--text3)"></div>
     </div>
+
+    <!-- DATOS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del presentante</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Nombre y apellido</label><input id="fp-d-nombre" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juan Carlos Perez"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">DNI</label><input id="fp-d-dni" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="31.779.967"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Domicilio legal</label><input id="fp-d-domicilio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Bahia Blanca, Prov. Buenos Aires"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Caracter</label><input id="fp-d-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehiculo"></div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehiculo e infraccion</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-d-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="fp-d-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 5 Ptas Pack Plus 2008"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="fp-d-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora del acta</label><input id="fp-d-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-d-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N 22, km 733"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada / limite</label><input id="fp-d-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
+          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-d-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov. - Dr. Jorge Vicente"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKBOXES -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar - tilda lo que corresponde</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-presc" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-presc" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion de la infraccion (art. 89, Ley 24.449 - 5 anos)</div>
+          </label>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-morig" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-morig" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo de velocidad - razonabilidad y proporcionalidad de la pena (Ley 24.449)</div>
+          </label>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-nulidad" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-nulidad" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion de la infraccion</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o de la fotomulta respecto al dominio</div>
+          </label>
+        </div>
+
+        <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="checkbox" id="fp-d-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+            <label for="fp-d-nul-acta" style="font-size:12px;color:var(--text1);cursor:pointer;user-select:none">Ilegibilidad del acta</label>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="checkbox" id="fp-d-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+            <label for="fp-d-nul-foto" style="font-size:12px;color:var(--text1);cursor:pointer;user-select:none">Ilegibilidad de la fotomulta respecto al dominio (patente)</label>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-pago-subsidio" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-pago-subsidio" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion solicitada</div>
+          </label>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-pago-directo" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-pago-directo" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Sin solicitar otra cosa - presentacion directa al pago</div>
+          </label>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <input type="checkbox" id="fp-d-prorroga" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
+          <label for="fp-d-prorroga" style="cursor:pointer;user-select:none">
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar que intervenga el juzgado mas cercano al domicilio del presentante</div>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HECHOS -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Hechos y argumentos particulares (opcional)</div>
+      <textarea id="fp-d-extra" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text1);font-size:13px;min-height:90px;resize:vertical" placeholder="Agrega aqui cualquier argumento particular de esta causa..."></textarea>
+    </div>
+
+    <!-- DNI -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">DNI del titular (se adjunta al final del PDF)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Frente</div>
+          <label id="fp-d-dni-frente-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','frente',this)">
+          </label>
+          <img id="fp-d-dni-frente-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">Dorso</div>
+          <label id="fp-d-dni-dorso-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:8px;padding:16px;cursor:pointer;gap:8px;min-height:100px;background:var(--bg2)">
+            <span style="font-size:24px">&#129330;</span>
+            <span style="font-size:12px;color:var(--text3)">Arrastra o hace clic</span>
+            <input type="file" accept="image/*" style="display:none" onchange="fpPreviewDni('d','dorso',this)">
+          </label>
+          <img id="fp-d-dni-dorso-preview" style="display:none;width:100%;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-dark" onclick="generarFaltaPDF()" style="background:var(--accent);color:#fff">Generar PDF</button>
+    </div>
+
   </div>`;
 }
 
-// ---- CARGA AUTOMÁTICA CON IA ----
+function fpDescToggle(){
+  const nulChecked = document.getElementById('fp-d-nulidad')?.checked;
+  const opts = document.getElementById('fp-d-nulidad-opts');
+  if(opts) opts.style.display = nulChecked ? 'flex' : 'none';
+}
+
+// ---- CARGA AUTOMATICA CON IA ----
 const fpAutoArchivos = { acta: null, dni: null };
 
 function fpAutoCargarArchivo(tipo, input){
   const file = input.files[0];
   if(!file) return;
   fpAutoArchivos[tipo] = file;
-  const nombreEl = document.getElementById(`fp-auto-${tipo}-nombre`);
-  nombreEl.textContent = '✓ ' + file.name;
+  const nombreEl = document.getElementById('fp-auto-' + tipo + '-nombre');
+  nombreEl.textContent = 'OK: ' + file.name;
   nombreEl.style.display = 'block';
 }
 
@@ -6158,14 +6165,12 @@ async function fpAutoCompletar(){
 
   if(!fpAutoArchivos.acta && !fpAutoArchivos.dni){
     status.style.display = 'block';
-    status.style.color = 'var(--red, #e55)';
-    status.textContent = 'Subí al menos el acta PDF o el DNI para continuar.';
+    status.style.color = '#e55';
+    status.textContent = 'Subi al menos el acta PDF o el DNI para continuar.';
     return;
   }
 
-  // UI: loading
   btn.disabled = true;
-  btnIcon.textContent = '⏳';
   btnText.textContent = 'Leyendo documentos...';
   status.style.display = 'block';
   status.style.color = 'var(--text3)';
@@ -6174,72 +6179,33 @@ async function fpAutoCompletar(){
   try {
     const mensajeContenido = [];
 
-    // Agregar acta PDF si existe
     if(fpAutoArchivos.acta){
       const actaB64 = await fpAutoLeerBase64(fpAutoArchivos.acta);
-      mensajeContenido.push({
-        type: 'document',
-        source: { type: 'base64', media_type: 'application/pdf', data: actaB64 }
-      });
+      mensajeContenido.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data:actaB64 } });
     }
-
-    // Agregar foto DNI si existe
     if(fpAutoArchivos.dni){
-      const dniB64 = await fpAutoLeerBase64(fpAutoArchivos.dni);
+      const dniB64  = await fpAutoLeerBase64(fpAutoArchivos.dni);
       const dniMime = fpAutoArchivos.dni.type || 'image/jpeg';
-      mensajeContenido.push({
-        type: 'image',
-        source: { type: 'base64', media_type: dniMime, data: dniB64 }
-      });
+      mensajeContenido.push({ type:'image', source:{ type:'base64', media_type:dniMime, data:dniB64 } });
     }
 
-    mensajeContenido.push({
-      type: 'text',
-      text: `Analizá los documentos adjuntos (acta de infracción de tránsito de la Provincia de Buenos Aires y/o foto de DNI argentino) y extraé los siguientes datos. Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones:
-
-{
-  "nombre": "nombre y apellido completo del titular (del DNI si está disponible)",
-  "dni": "número de DNI sin puntos",
-  "domicilio": "domicilio completo del DNI",
-  "dominio": "patente/dominio del vehículo",
-  "vehiculo": "marca, modelo, año del vehículo",
-  "acta": "número de acta de infracción completo",
-  "fechaacta": "fecha y hora de la infracción en formato dd/mm/aaaa – HH:MM hs.",
-  "lugar": "lugar donde se cometió la infracción",
-  "velocidad": "velocidad registrada si aparece, si no dejar vacío",
-  "equipo": "marca y modelo del equipo de medición si aparece",
-  "juzgado": "partido o localidad del juzgado si aparece",
-  "importe": "importe de la multa si aparece"
-}
-
-Si algún dato no aparece en los documentos, dejá el campo como cadena vacía "". No inventes datos.`
-    });
+    mensajeContenido.push({ type:'text', text: 'Analiza los documentos adjuntos (acta de infraccion de transito de la Provincia de Buenos Aires y/o foto de DNI argentino) y extrae los siguientes datos. Responde UNICAMENTE con un objeto JSON valido, sin texto adicional, sin markdown, sin explicaciones:\n{"nombre":"nombre y apellido completo del titular","dni":"numero de DNI sin puntos","domicilio":"domicilio completo","dominio":"patente del vehiculo","vehiculo":"marca modelo año","acta":"numero de acta completo","fechaacta":"fecha y hora formato dd/mm/aaaa - HH:MM hs.","lugar":"lugar de la infraccion","velocidad":"velocidad registrada o vacio","juzgado":"partido o localidad del juzgado o vacio"}\nSi algun dato no aparece deja el campo como cadena vacia. No inventes datos.' });
 
     status.textContent = 'Procesando con IA...';
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: mensajeContenido }]
-      })
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:mensajeContenido }] })
     });
 
     if(!resp.ok) throw new Error('Error API: ' + resp.status);
-
     const data = await resp.json();
-    const texto = data.content.map(b => b.text || '').join('');
-    const jsonStr = texto.replace(/```json|```/g, '').trim();
+    const texto = data.content.map(b=>b.text||'').join('');
+    const jsonStr = texto.replace(/```json|```/g,'').trim();
     const campos = JSON.parse(jsonStr);
 
-    // Completar los campos del formulario
-    const set = (id, val) => {
-      const el = document.getElementById(id);
-      if(el && val) el.value = val;
-    };
-
+    const set = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
     set('fp-d-nombre',    campos.nombre);
     set('fp-d-dni',       campos.dni);
     set('fp-d-domicilio', campos.domicilio);
@@ -6251,47 +6217,33 @@ Si algún dato no aparece en los documentos, dejá el campo como cadena vacía "
     set('fp-d-velocidad', campos.velocidad);
     set('fp-d-juzgado',   campos.juzgado);
 
-    // UI: éxito
-    btnIcon.textContent = '✅';
-    btnText.textContent = 'Datos completados';
-    btn.style.background = 'var(--green, #2a9d5c)';
-    status.style.color = 'var(--green, #2a9d5c)';
+    btn.disabled = false;
+    btn.style.background = '#2a9d5c';
+    btnText.textContent = 'Datos completados!';
+    status.style.color = '#2a9d5c';
     const completados = Object.values(campos).filter(v=>v).length;
-    status.textContent = `✓ Se completaron ${completados} campos automáticamente. Revisá y ajustá si es necesario.`;
-
-    setTimeout(()=>{
-      btn.disabled = false;
-      btnIcon.textContent = '✨';
-      btnText.textContent = 'Volver a completar';
-      btn.style.background = 'var(--accent)';
-    }, 4000);
+    status.textContent = completados + ' campos completados automaticamente. Revisa y ajusta si es necesario.';
+    setTimeout(()=>{ btn.style.background='var(--accent)'; btnText.textContent='Volver a completar'; }, 4000);
 
   } catch(err) {
     console.error(err);
-    btnIcon.textContent = '❌';
-    btnText.textContent = 'Completar datos automáticamente';
     btn.disabled = false;
     btn.style.background = 'var(--accent)';
-    status.style.color = 'var(--red, #e55)';
-    status.textContent = 'Error al procesar los documentos. Verificá tu conexión e intentá de nuevo.';
+    btnText.textContent = 'Completar datos automaticamente';
+    status.style.color = '#e55';
+    status.textContent = 'Error al procesar los documentos. Verifica tu conexion e intenta de nuevo.';
   }
 }
 
 function fpAutoLeerBase64(file){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
-// ---- FIN CARGA AUTOMÁTICA ----
-
-function fpDescToggle(){
-  const nulChecked = document.getElementById('fp-d-nulidad')?.checked;
-  const opts = document.getElementById('fp-d-nulidad-opts');
-  if(opts) opts.style.display = nulChecked ? 'flex' : 'none';
-}
+// ---- FIN CARGA AUTOMATICA ----
 
 function toRoman(n){
   const vals=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
@@ -6299,8 +6251,19 @@ function toRoman(n){
   let r=''; vals.forEach((v,i)=>{ while(n>=v){r+=syms[i];n-=v;} }); return r;
 }
 
+function fpSanitize(str){
+  if(!str) return '';
+  return String(str)
+    .replace(/\u00e1/g,'a').replace(/\u00e9/g,'e').replace(/\u00ed/g,'i').replace(/\u00f3/g,'o').replace(/\u00fa/g,'u')
+    .replace(/\u00c1/g,'A').replace(/\u00c9/g,'E').replace(/\u00cd/g,'I').replace(/\u00d3/g,'O').replace(/\u00da/g,'U')
+    .replace(/\u00f1/g,'n').replace(/\u00d1/g,'N').replace(/\u00fc/g,'u').replace(/\u00dc/g,'U')
+    .replace(/\u2013/g,'-').replace(/\u2014/g,'-').replace(/\u201c/g,'"').replace(/\u201d/g,'"')
+    .replace(/\u2018/g,"'").replace(/\u2019/g,"'").replace(/\u2026/g,'...')
+    .replace(/[^\x00-\xFF]/g,'?');
+}
+
 async function generarFaltaPDF(){
-  if(typeof PDFLib === 'undefined'){ alert('Error: librería PDF no cargó. Recargá la página.'); return; }
+  if(typeof PDFLib === 'undefined'){ alert('Error: libreria PDF no cargo. Recarga la pagina.'); return; }
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
   const pdfDoc = await PDFDocument.create();
   const fontNormal    = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -6318,7 +6281,7 @@ async function generarFaltaPDF(){
   const writeLine = (text, font, size, indent=0) => {
     const x = ML + indent;
     const aw = maxW - indent;
-    const words = String(text).split(' ');
+    const words = fpSanitize(text).split(' ');
     let line = '';
     for(const word of words){
       const test = line ? line+' '+word : word;
@@ -6329,17 +6292,17 @@ async function generarFaltaPDF(){
     if(line){ checkY(); page.drawText(line, {x, y, font, size, color:rgb(0,0,0)}); y -= lineH; }
   };
 
-  const skip = (n=1) => { y -= lineH * n; };
-  const titulo = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
+  const skip    = (n=1) => { y -= lineH * n; };
+  const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
   const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
-  const gv = id => (document.getElementById(id)||{}).value||'';
-  const cb = id => document.getElementById(id)?.checked || false;
+  const gv  = id => (document.getElementById(id)||{}).value||'';
+  const cb  = id => document.getElementById(id)?.checked || false;
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
 
   const nombre    = gv('fp-d-nombre');
   const dni       = gv('fp-d-dni');
   const domicilio = gv('fp-d-domicilio');
-  const caracter  = gv('fp-d-caracter') || 'titular registral del vehículo';
+  const caracter  = gv('fp-d-caracter') || 'titular registral del vehiculo';
   const dominio   = gv('fp-d-dominio');
   const vehiculo  = gv('fp-d-vehiculo');
   const acta      = gv('fp-d-acta');
@@ -6359,127 +6322,126 @@ async function generarFaltaPDF(){
   const pedirProrroga     = cb('fp-d-prorroga');
 
   const algoPedido = pedirPresc||pedirMorig||pedirNulidad||pedirPagoSubsidio||pedirPagoDirecto;
-  if(!algoPedido){ alert('Tildá al menos una opción antes de generar el PDF.'); return; }
+  if(!algoPedido){ alert('Tilda al menos una opcion antes de generar el PDF.'); return; }
 
-  // ENCABEZADO
-  writeLine(`Bahía Blanca, ${hoy}`, fontNormal, 11);
+  writeLine('Bahia Blanca, ' + hoy, fontNormal, 11);
   skip();
-  writeLine(`Sr. Juez de Faltas`, fontTimesBold, 11);
-  writeLine(`${juzgado||'Juzgado de Faltas – Provincia de Buenos Aires'}`, fontTimesBold, 11);
-  writeLine(`Su Despacho.-`, fontTimesBold, 11);
+  writeLine('Sr. Juez de Faltas', fontTimesBold, 11);
+  writeLine(fpSanitize(juzgado)||'Juzgado de Faltas - Provincia de Buenos Aires', fontTimesBold, 11);
+  writeLine('Su Despacho.-', fontTimesBold, 11);
   skip();
 
   let objetoTexto = [];
-  if(pedirPresc) objetoTexto.push('solicitar la declaración de PRESCRIPCIÓN de la infracción');
-  if(pedirNulidad) objetoTexto.push('interponer NULIDAD del acta');
-  if(pedirMorig) objetoTexto.push('solicitar MORIGERACIÓN de la sanción impuesta');
-  if(pedirPagoDirecto) objetoTexto.push('efectuar PAGO VOLUNTARIO');
+  if(pedirPresc)        objetoTexto.push('solicitar la declaracion de PRESCRIPCION de la infraccion');
+  if(pedirNulidad)      objetoTexto.push('interponer NULIDAD del acta');
+  if(pedirMorig)        objetoTexto.push('solicitar MORIGERACION de la sancion impuesta');
+  if(pedirPagoDirecto)  objetoTexto.push('efectuar PAGO VOLUNTARIO');
   if(pedirPagoSubsidio && !pedirPagoDirecto) objetoTexto.push('solicitar en subsidio acceso al PAGO VOLUNTARIO');
 
-  parrafo(`Quien suscribe, ${nombre||'[NOMBRE]'}, DNI N° ${dni||'[DNI]'}, con domicilio en ${domicilio||'[DOMICILIO]'}, en carácter de ${caracter} del vehículo Dominio ${dominio||'[DOMINIO]'} (${vehiculo||'[VEHÍCULO]'}), se presenta ante V.S. a fin de ${objetoTexto.join(', ')}, respecto del Acta de Infracción N° ${acta||'[ACTA]'}, labrada el día ${fechaacta||'[FECHA]'} en ${lugar||'[LUGAR]'}, conforme los fundamentos que a continuación se exponen.`);
+  parrafo('Quien suscribe, ' + (nombre||'[NOMBRE]') + ', DNI N ' + (dni||'[DNI]') + ', con domicilio en ' + (domicilio||'[DOMICILIO]') + ', en caracter de ' + caracter + ' del vehiculo Dominio ' + (dominio||'[DOMINIO]') + ' (' + (vehiculo||'[VEHICULO]') + '), se presenta ante V.S. a fin de ' + objetoTexto.join(', ') + ', respecto del Acta de Infraccion N ' + (acta||'[ACTA]') + ', labrada el dia ' + (fechaacta||'[FECHA]') + ' en ' + (lugar||'[LUGAR]') + ', conforme los fundamentos que a continuacion se exponen.');
 
-  titulo(`I. DATOS DE LA INFRACCIÓN`);
-  writeLine(`Acta N°: ${acta||'[ACTA]'}`, fontTimes, 11, 10);
-  writeLine(`Fecha y hora: ${fechaacta||'[FECHA]'}`, fontTimes, 11, 10);
-  writeLine(`Lugar: ${lugar||'[LUGAR]'}`, fontTimes, 11, 10);
-  writeLine(`Vehículo: Dominio ${dominio||'[DOMINIO]'} – ${vehiculo||'[VEHÍCULO]'}`, fontTimes, 11, 10);
-  if(velocidad) writeLine(`Velocidad registrada: ${velocidad}`, fontTimes, 11, 10);
+  titulo('I. DATOS DE LA INFRACCION');
+  writeLine('Acta N: ' + (acta||'[ACTA]'), fontTimes, 11, 10);
+  writeLine('Fecha y hora: ' + (fechaacta||'[FECHA]'), fontTimes, 11, 10);
+  writeLine('Lugar: ' + (lugar||'[LUGAR]'), fontTimes, 11, 10);
+  writeLine('Vehiculo: Dominio ' + (dominio||'[DOMINIO]') + ' - ' + (vehiculo||'[VEHICULO]'), fontTimes, 11, 10);
+  if(velocidad) writeLine('Velocidad registrada: ' + velocidad, fontTimes, 11, 10);
   skip();
 
   let secNum = 2;
 
   if(pedirPresc){
-    titulo(`${toRoman(secNum)}. PRESCRIPCIÓN DE LA INFRACCIÓN`);
-    parrafo(`El artículo 89 de la Ley Nacional de Tránsito N° 24.449, de aplicación en el territorio de la Provincia de Buenos Aires, dispone que la prescripción de la acción por falta grave se opera a los CINCO (5) años. Habiendo transcurrido ampliamente dicho plazo desde la fecha de comisión de la infracción que se le atribuye al suscripto, sin que constara acto interruptivo válido debidamente notificado, la misma ha prescripto de pleno derecho.`);
-    parrafo(`En consecuencia, corresponde declarar extinguida la acción contravencional y disponer el archivo de las presentes actuaciones.`);
+    titulo(toRoman(secNum) + '. PRESCRIPCION DE LA INFRACCION');
+    parrafo('El articulo 89 de la Ley Nacional de Transito N 24.449, de aplicacion en el territorio de la Provincia de Buenos Aires, dispone que la prescripcion de la accion por falta grave se opera a los CINCO (5) anos. Habiendo transcurrido ampliamente dicho plazo desde la fecha de comision de la infraccion que se le atribuye al suscripto, sin que constara acto interruptivo valido debidamente notificado, la misma ha prescripto de pleno derecho.');
+    parrafo('En consecuencia, corresponde declarar extinguida la accion contravencional y disponer el archivo de las presentes actuaciones.');
     secNum++;
   }
 
   if(pedirNulidad){
-    titulo(`${toRoman(secNum)}. NULIDAD DEL ACTA`);
-    parrafo(`El suscripto solicita la declaración de NULIDAD del acta labrada, en virtud de los siguientes vicios que afectan su validez formal y sustancial:`);
+    titulo(toRoman(secNum) + '. NULIDAD DEL ACTA');
+    parrafo('El suscripto solicita la declaracion de NULIDAD del acta labrada, en virtud de los siguientes vicios que afectan su validez formal y sustancial:');
     let subNum = 1;
     if(nulActa){
-      writeLine(`${subNum++}. Ilegibilidad del acta`, fontTimesBold, 11);
+      writeLine(subNum + '. Ilegibilidad del acta', fontTimesBold, 11);
       skip(0.3);
-      parrafo(`El acta de infracción labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados —ya sea en la identificación del infractor, del vehículo, del agente actuante o en la descripción de los hechos— constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitución Nacional.`, 10);
+      parrafo('El acta de infraccion labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitucion Nacional.', 10);
+      subNum++;
     }
     if(nulFoto){
-      writeLine(`${subNum++}. Ilegibilidad de la fotomulta respecto al dominio (patente)`, fontTimesBold, 11);
+      writeLine(subNum + '. Ilegibilidad de la fotomulta respecto al dominio (patente)', fontTimesBold, 11);
       skip(0.3);
-      parrafo(`La fotografía o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehículo infractor, impidiendo establecer con certeza que el vehículo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribución de la infracción al vehículo Dominio ${dominio||'[DOMINIO]'} y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta y de todo lo actuado en consecuencia.`, 10);
+      parrafo('La fotografia o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehiculo infractor, impidiendo establecer con certeza que el vehiculo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribucion de la infraccion al vehiculo Dominio ' + (dominio||'[DOMINIO]') + ' y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta.', 10);
+      subNum++;
     }
-    if(!nulActa && !nulFoto){
-      parrafo(`[Especificar el motivo de nulidad]`);
-    }
+    if(!nulActa && !nulFoto) parrafo('[Especificar el motivo de nulidad]');
     secNum++;
   }
 
   if(pedirMorig){
-    titulo(`${toRoman(secNum)}. MORIGERACIÓN DE LA SANCIÓN`);
-    parrafo(`Sin perjuicio de lo anterior, y para el supuesto en que V.S. considerara acreditada la infracción, el suscripto solicita la morigeración de la sanción impuesta, con fundamento en los principios de razonabilidad y proporcionalidad de la pena.`);
-    writeLine(`1. Principio de proporcionalidad y razonabilidad`, fontTimesBold, 11);
+    titulo(toRoman(secNum) + '. MORIGERACION DE LA SANCION');
+    parrafo('Sin perjuicio de lo anterior, y para el supuesto en que V.S. considerara acreditada la infraccion, el suscripto solicita la morigeracion de la sancion impuesta, con fundamento en los principios de razonabilidad y proporcionalidad de la pena.');
+    writeLine('1. Principio de proporcionalidad y razonabilidad', fontTimesBold, 11);
     skip(0.3);
-    parrafo(`La sanción impuesta debe guardar adecuada proporción con la entidad real de la conducta reprochada. La Ley Nacional de Tránsito N° 24.449 recepta expresamente el principio de proporcionalidad en su articulado, estableciendo un régimen graduado de infracciones según su gravedad. Aplicar la máxima escala sancionatoria ante un exceso de escasa magnitud resulta contrario al principio de proporcionalidad que debe regir toda sanción administrativa. El principio de razonabilidad —con rango constitucional en virtud del art. 28 de la Constitución Nacional— exige adecuación entre la sanción y la falta cometida.`, 10);
-    writeLine(`2. Franquicia legal y margen de tolerancia`, fontTimesBold, 11);
+    parrafo('La sancion impuesta debe guardar adecuada proporcion con la entidad real de la conducta reprochada. La Ley Nacional de Transito N 24.449 recepta expresamente el principio de proporcionalidad en su articulado, estableciendo un regimen graduado de infracciones segun su gravedad. Aplicar la maxima escala sancionatoria ante un exceso de escasa magnitud resulta contrario al principio de proporcionalidad que debe regir toda sancion administrativa. El principio de razonabilidad -con rango constitucional en virtud del art. 28 de la Constitucion Nacional- exige adecuacion entre la sancion y la falta cometida.', 10);
+    writeLine('2. Franquicia legal y margen de tolerancia', fontTimesBold, 11);
     skip(0.3);
-    parrafo(`La propia Ley N° 24.449 reconoce la existencia de una franquicia implícita en materia de infracciones de velocidad, al exigir proporcionalidad entre la conducta y la respuesta estatal. Los equipos de medición presentan márgenes de error técnico reconocidos por sus fabricantes y la normativa metrológica, lo que introduce razonable duda sobre la exactitud de la medición cuando el exceso es de escasa magnitud.`, 10);
-    writeLine(`3. Ausencia de antecedentes infraccionales`, fontTimesBold, 11);
+    parrafo('La propia Ley N 24.449 reconoce la existencia de una franquicia implicita en materia de infracciones de velocidad, al exigir proporcionalidad entre la conducta y la respuesta estatal. Los equipos de medicion presentan margenes de error tecnico reconocidos por sus fabricantes y la normativa metrologica, lo que introduce razonable duda sobre la exactitud de la medicion cuando el exceso es de escasa magnitud.', 10);
+    writeLine('3. Ausencia de antecedentes infraccionales', fontTimesBold, 11);
     skip(0.3);
-    parrafo(`El suscripto no registra antecedentes de infracciones de tránsito, lo que acredita una conducta vial responsable y habitual, circunstancia que debe ser valorada positivamente al momento de graduar la sanción conforme los principios generales del derecho de faltas.`, 10);
+    parrafo('El suscripto no registra antecedentes de infracciones de transito, lo que acredita una conducta vial responsable y habitual, circunstancia que debe ser valorada positivamente al momento de graduar la sancion conforme los principios generales del derecho de faltas.', 10);
     secNum++;
   }
 
   if(pedirPagoSubsidio){
-    titulo(`${toRoman(secNum)}. PAGO VOLUNTARIO EN SUBSIDIO`);
-    parrafo(`Para el supuesto en que V.S. no hiciera lugar a las peticiones anteriores, el suscripto solicita se le permita acceder al pago voluntario de la multa, en ejercicio del derecho reconocido por la Ley Nacional de Tránsito N° 24.449 y la Ley Provincial N° 13.927 y su modificatoria Ley N° 15.002, como mecanismo de regularización con los beneficios que ello conlleva.`);
+    titulo(toRoman(secNum) + '. PAGO VOLUNTARIO EN SUBSIDIO');
+    parrafo('Para el supuesto en que V.S. no hiciera lugar a las peticiones anteriores, el suscripto solicita se le permita acceder al pago voluntario de la multa, en ejercicio del derecho reconocido por la Ley Nacional de Transito N 24.449 y la Ley Provincial N 13.927 y su modificatoria Ley N 15.002, como mecanismo de regularizacion con los beneficios que ello conlleva.');
     secNum++;
   }
 
   if(pedirPagoDirecto){
-    titulo(`${toRoman(secNum)}. PAGO VOLUNTARIO`);
-    parrafo(`El suscripto se presenta a regularizar su situación mediante el pago voluntario de la multa correspondiente al Acta N° ${acta||'[ACTA]'}, en ejercicio del derecho que le asiste conforme la normativa vigente.`);
-    parrafo(`Ley Nacional de Tránsito N° 24.449, arts. 72 y ss. Decreto Reglamentario N° 779/95. Ley Provincial N° 13.927 y su modificatoria Ley N° 15.002.`);
+    titulo(toRoman(secNum) + '. PAGO VOLUNTARIO');
+    parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la multa correspondiente al Acta N ' + (acta||'[ACTA]') + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
+    parrafo('Ley Nacional de Transito N 24.449, arts. 72 y ss. Decreto Reglamentario N 779/95. Ley Provincial N 13.927 y su modificatoria Ley N 15.002.');
     secNum++;
   }
 
   if(pedirProrroga){
-    titulo(`${toRoman(secNum)}. PRÓRROGA DE JURISDICCIÓN`);
-    parrafo(`En ejercicio de la facultad prevista por la normativa vigente en materia de faltas de tránsito de la Provincia de Buenos Aires, el suscripto solicita la prórroga de jurisdicción al juzgado al que se dirige el presente, en razón de ser el más cercano a su domicilio legal radicado en ${domicilio||'[DOMICILIO]'}.`);
+    titulo(toRoman(secNum) + '. PRORROGA DE JURISDICCION');
+    parrafo('En ejercicio de la facultad prevista por la normativa vigente en materia de faltas de transito de la Provincia de Buenos Aires, el suscripto solicita la prorroga de jurisdiccion al juzgado al que se dirige el presente, en razon de ser el mas cercano a su domicilio legal radicado en ' + (domicilio||'[DOMICILIO]') + '.');
     secNum++;
   }
 
   if(extra){
-    titulo(`${toRoman(secNum)}. CONSIDERACIONES ADICIONALES`);
+    titulo(toRoman(secNum) + '. CONSIDERACIONES ADICIONALES');
     parrafo(extra);
     secNum++;
   }
 
-  titulo(`${toRoman(secNum)}. PETITORIO`);
-  parrafo(`Por todo lo expuesto, solicito a V.S. que:`);
+  titulo(toRoman(secNum) + '. PETITORIO');
+  parrafo('Por todo lo expuesto, solicito a V.S. que:');
   let petNum = 1;
-  writeLine(`${petNum++}) Tenga por presentado el presente descargo en legal tiempo y forma.`, fontTimes, 11, 15);
-  if(pedirProrroga) writeLine(`${petNum++}) Haga lugar a la prórroga de jurisdicción solicitada.`, fontTimes, 11, 15);
-  if(pedirPresc) writeLine(`${petNum++}) Declare prescripta la infracción imputada y disponga el archivo de las actuaciones.`, fontTimes, 11, 15);
-  if(pedirNulidad) writeLine(`${petNum++}) Declare la NULIDAD del Acta N° ${acta||'[ACTA]'} por los vicios formales denunciados.`, fontTimes, 11, 15);
-  if(pedirMorig) writeLine(`${petNum++}) Aplique los principios de razonabilidad y proporcionalidad, morigerando la sanción al mínimo legal.`, fontTimes, 11, 15);
-  if(pedirPagoSubsidio) writeLine(`${petNum++}) En subsidio de lo anterior, autorice el acceso al pago voluntario con los beneficios de ley.`, fontTimes, 11, 15);
-  if(pedirPagoDirecto) writeLine(`${petNum++}) Tenga por presentado el pago voluntario y proceda conforme a derecho.`, fontTimes, 11, 15);
-  writeLine(`${petNum++}) Provea de conformidad, pues es de JUSTICIA.`, fontTimes, 11, 15);
+  writeLine(petNum++ + ') Tenga por presentado el presente descargo en legal tiempo y forma.', fontTimes, 11, 15);
+  if(pedirProrroga)     writeLine(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', fontTimes, 11, 15);
+  if(pedirPresc)        writeLine(petNum++ + ') Declare prescripta la infraccion imputada y disponga el archivo de las actuaciones.', fontTimes, 11, 15);
+  if(pedirNulidad)      writeLine(petNum++ + ') Declare la NULIDAD del Acta N ' + (acta||'[ACTA]') + ' por los vicios formales denunciados.', fontTimes, 11, 15);
+  if(pedirMorig)        writeLine(petNum++ + ') Aplique los principios de razonabilidad y proporcionalidad, morigerando la sancion al minimo legal.', fontTimes, 11, 15);
+  if(pedirPagoSubsidio) writeLine(petNum++ + ') En subsidio de lo anterior, autorice el acceso al pago voluntario con los beneficios de ley.', fontTimes, 11, 15);
+  if(pedirPagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario y proceda conforme a derecho.', fontTimes, 11, 15);
+  writeLine(petNum++ + ') Provea de conformidad, pues es de JUSTICIA.', fontTimes, 11, 15);
   skip();
-  writeLine(`Sin otro particular, saludo a Ud. atentamente.`, fontTimes, 11);
+  writeLine('Sin otro particular, saludo a Ud. atentamente.', fontTimes, 11);
   skip(3);
-  writeLine(`${nombre||'[NOMBRE]'}`, fontTimesBold, 11);
-  writeLine(`DNI N° ${dni||'[DNI]'}`, fontTimes, 11);
-  writeLine(`${caracter} – Dominio ${dominio||'[DOMINIO]'}`, fontTimes, 11);
+  writeLine(nombre||'[NOMBRE]', fontTimesBold, 11);
+  writeLine('DNI N ' + (dni||'[DNI]'), fontTimes, 11);
+  writeLine(caracter + ' - Dominio ' + (dominio||'[DOMINIO]'), fontTimes, 11);
 
   await fpAgregarDniAlPDF(pdfDoc, 'd');
 
   const pdfBytes = await pdfDoc.save();
   const blob = new Blob([pdfBytes],{type:'application/pdf'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `faltas-prov-descargo-${Date.now()}.pdf`; a.click();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'faltas-prov-descargo-' + Date.now() + '.pdf'; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
