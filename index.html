@@ -5968,6 +5968,7 @@ if(typeof supabase==='undefined'){
 function renderFaltasProv(containerId){
   const cont = document.getElementById(containerId);
   if(!cont) return;
+  if(cont.querySelector('#fp-d-nombre')) return; // ya renderizado, no pisar los datos
   cont.innerHTML = `
   <div style="max-width:860px;margin:0 auto">
     <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
@@ -6039,28 +6040,28 @@ function renderFaltasProv(containerId){
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar - tilda lo que corresponde</div>
       <div style="display:flex;flex-direction:column;gap:14px">
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-presc" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-presc" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-presc')">
+          <input type="checkbox" id="fp-d-presc" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion de la infraccion (art. 89, Ley 24.449 - 5 anos)</div>
-          </label>
+          </div>
         </div>
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-morig" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-morig" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-morig')">
+          <input type="checkbox" id="fp-d-morig" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo de velocidad - razonabilidad y proporcionalidad de la pena (Ley 24.449)</div>
-          </label>
+          </div>
         </div>
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-nulidad" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-nulidad" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-nulidad')">
+          <input type="checkbox" id="fp-d-nulidad" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion de la infraccion</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o de la fotomulta respecto al dominio</div>
-          </label>
+          </div>
         </div>
 
         <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
@@ -6074,28 +6075,28 @@ function renderFaltasProv(containerId){
           </div>
         </div>
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-pago-subsidio" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-pago-subsidio" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-subsidio')">
+          <input type="checkbox" id="fp-d-pago-subsidio" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion solicitada</div>
-          </label>
+          </div>
         </div>
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-pago-directo" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-pago-directo" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-directo')">
+          <input type="checkbox" id="fp-d-pago-directo" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Sin solicitar otra cosa - presentacion directa al pago</div>
-          </label>
+          </div>
         </div>
 
-        <div style="display:flex;align-items:flex-start;gap:12px">
-          <input type="checkbox" id="fp-d-prorroga" onchange="fpDescToggle()" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;cursor:pointer">
-          <label for="fp-d-prorroga" style="cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-prorroga')">
+          <input type="checkbox" id="fp-d-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none">
             <div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div>
             <div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar que intervenga el juzgado mas cercano al domicilio del presentante</div>
-          </label>
+          </div>
         </div>
 
       </div>
@@ -6137,6 +6138,13 @@ function renderFaltasProv(containerId){
     </div>
 
   </div>`;
+}
+
+function fpCbToggle(id){
+  const cb = document.getElementById(id);
+  if(!cb) return;
+  cb.checked = !cb.checked;
+  fpDescToggle();
 }
 
 function fpDescToggle(){
