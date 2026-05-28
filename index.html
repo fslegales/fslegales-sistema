@@ -5968,7 +5968,8 @@ if(typeof supabase==='undefined'){
 function renderFaltasProv(containerId){
   const cont = document.getElementById(containerId);
   if(!cont) return;
-  if(cont.querySelector('#fp-d-nombre')) return; // ya renderizado, no pisar los datos
+  if(cont.dataset.fpRendered) return;
+  cont.dataset.fpRendered = '1';
   cont.innerHTML = `
   <div style="max-width:860px;margin:0 auto">
     <div style="font-size:20px;font-weight:500;margin-bottom:4px">Faltas Provinciales</div>
@@ -6303,8 +6304,12 @@ async function generarFaltaPDF(){
   const skip    = (n=1) => { y -= lineH * n; };
   const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
   const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
-  const gv  = id => (document.getElementById(id)||{}).value||'';
-  const cb  = id => document.getElementById(id)?.checked || false;
+  // Buscar en el contenedor activo (puede ser sv o emp)
+  const fpCont = document.querySelector('[data-fp-rendered]') ||
+                 document.getElementById('sv-faltas-prov-content') ||
+                 document.getElementById('emp-faltas-prov-content');
+  const gv  = id => (fpCont?.querySelector('#'+id)||document.getElementById(id)||{}).value||'';
+  const cb  = id => (fpCont?.querySelector('#'+id)||document.getElementById(id))?.checked || false;
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
 
   const nombre    = gv('fp-d-nombre');
