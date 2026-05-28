@@ -6333,7 +6333,7 @@ async function fpAutoCompletar(){
 
     const resp = await fetch('https://rofbahscccdbxbwimjzt.supabase.co/functions/v1/clever-service', {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer sb_publishable_fTxX03SNmBs_lHF04HOP7w_STrIFfS9'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:mensajeContenido }] })
     });
 
