@@ -6333,7 +6333,7 @@ async function fpAutoCompletar(){
 
     const resp = await fetch('https://rofbahscccdbxbwimjzt.supabase.co/functions/v1/clever-service', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer sb_publishable_fTxX03SNmBs_lHF04HOP7w_STrIFfS9'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:mensajeContenido }] })
     });
 
