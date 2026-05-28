@@ -6331,7 +6331,7 @@ async function fpAutoCompletar(){
 
     status.textContent = 'Procesando con IA...';
 
-    const resp = await fetch('/api/claude', {
+    const resp = await fetch('https://rofbahscccdbxbwimjzt.supabase.co/functions/v1/clever-service', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:mensajeContenido }] })
