@@ -732,60 +732,11 @@ tr.clickable{cursor:pointer}
           <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Caracter</label><input id="fp-d-caracter" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="titular registral del vehiculo"></div>
         </div>
       </div>
-      <div class="card" style="padding:20px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Datos del vehiculo e infraccion</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="fp-d-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="fp-d-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 2008"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="fp-d-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora</label><input id="fp-d-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="fp-d-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional N 22, km 733"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad registrada</label><input id="fp-d-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="fp-d-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov."></div>
-        </div>
-      </div>
     </div>
 
-    <!-- CHECKBOXES -->
-    <div class="card" style="padding:20px;margin-top:16px">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px">Que solicitar</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-presc')">
-          <input type="checkbox" id="fp-d-presc" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prescripcion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar declaracion de prescripcion (art. 89, Ley 24.449 - 5 anos)</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-morig')">
-          <input type="checkbox" id="fp-d-morig" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Morigeracion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Exceso minimo - razonabilidad y proporcionalidad (Ley 24.449)</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-nulidad')">
-          <input type="checkbox" id="fp-d-nulidad" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Nulidad por imposibilidad de visualizacion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Ilegibilidad del acta y/o fotomulta respecto al dominio</div></div>
-        </div>
-        <div id="fp-d-nulidad-opts" style="display:none;margin-left:29px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;flex-direction:column;gap:10px">
-          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-d-nul-acta')">
-            <input type="checkbox" id="fp-d-nul-acta" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
-            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad del acta</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="fpCbToggle('fp-d-nul-foto')">
-            <input type="checkbox" id="fp-d-nul-foto" style="width:15px;height:15px;accent-color:var(--accent);pointer-events:none;flex-shrink:0">
-            <span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad de la fotomulta respecto al dominio (patente)</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-subsidio')">
-          <input type="checkbox" id="fp-d-pago-subsidio" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div><div style="font-size:12px;color:var(--text3);margin-top:2px">En caso de no hacerse lugar a la nulidad y/o morigeracion</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-pago-directo')">
-          <input type="checkbox" id="fp-d-pago-directo" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Pago voluntario</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Presentacion directa al pago</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-prorroga')">
-          <input type="checkbox" id="fp-d-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
-          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prorroga de jurisdiccion</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar el juzgado mas cercano al domicilio</div></div>
-        </div>
-      </div>
-    </div>
+    <!-- ACTAS CONTAINER -->
+    <div id="fp-actas-container" style="margin-top:16px"></div>
+    <button onclick="fpAgregarActa()" style="width:100%;margin-top:8px;background:transparent;border:2px dashed var(--border);border-radius:8px;padding:10px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">&#10010; Agregar otra infraccion</button>
 
     <!-- EXTRA -->
     <div class="card" style="padding:20px;margin-top:16px">
@@ -6344,16 +6295,18 @@ async function fpAutoCompletar(){
     const campos = JSON.parse(jsonStr);
 
     const set = (id, val) => { const el = document.querySelector('#'+id); if(el && val) el.value = val; };
+    // Datos personales
     set('fp-d-nombre',    campos.nombre);
     set('fp-d-dni',       campos.dni);
     set('fp-d-domicilio', campos.domicilio);
-    set('fp-d-dominio',   campos.dominio);
-    set('fp-d-vehiculo',  campos.vehiculo);
-    set('fp-d-acta',      campos.acta);
-    set('fp-d-fechaacta', campos.fechaacta);
-    set('fp-d-lugar',     campos.lugar);
-    set('fp-d-velocidad', campos.velocidad);
-    set('fp-d-juzgado',   campos.juzgado);
+    // Datos de la infraccion en acta-0
+    set('fp-acta-0-dominio',   campos.dominio);
+    set('fp-acta-0-vehiculo',  campos.vehiculo);
+    set('fp-acta-0-acta',      campos.acta);
+    set('fp-acta-0-fechaacta', campos.fechaacta);
+    set('fp-acta-0-lugar',     campos.lugar);
+    set('fp-acta-0-velocidad', campos.velocidad);
+    set('fp-acta-0-juzgado',   campos.juzgado);
 
     btn.disabled = false;
     btn.style.background = '#2a9d5c';
@@ -6381,6 +6334,135 @@ function fpAutoLeerBase64(file){
     reader.readAsDataURL(file);
   });
 }
+
+// ---- MULTIPLES ACTAS ----
+let fpActaCount = 0;
+const fpActaFiles = {};
+
+function fpActaHtml(i) {
+  const n = i + 1;
+  const inp = `fp-acta-${i}`;
+  const closeBtn = i > 0 ? `<button onclick="fpEliminarActa(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px" title="Eliminar">&times;</button>` : '';
+  return `<div id="fp-acta-${i}" class="card" style="padding:16px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3)">Infraccion ${n}</div>
+      ${closeBtn}
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+      <label style="flex:1;display:flex;align-items:center;gap:8px;border:2px dashed var(--border);border-radius:6px;padding:8px 12px;cursor:pointer;background:var(--bg2)">
+        <span style="font-size:18px">&#128196;</span>
+        <span id="${inp}-nombre" style="font-size:12px;color:var(--text3)">Subir acta PDF</span>
+        <input type="file" accept="application/pdf" style="display:none" onchange="fpCargarActaPDF(${i},this)">
+      </label>
+      <button id="${inp}-btn" onclick="fpAutoCompletarActa(${i})" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#10024; Completar</button>
+    </div>
+    <div id="${inp}-status" style="font-size:11px;color:var(--text3);margin-bottom:10px;display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Dominio</label><input id="${inp}-dominio" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="HMQ824"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Vehiculo</label><input id="${inp}-vehiculo" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="Renault Clio 2008"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">N de Acta</label><input id="${inp}-acta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="02-120-00066302-1"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Fecha y hora</label><input id="${inp}-fechaacta" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="21/01/2024 - 14:10 hs."></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Lugar</label><input id="${inp}-lugar" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="Ruta Nacional 22 km 733"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Velocidad</label><input id="${inp}-velocidad" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="90 km/h sobre limite de 80 km/h"></div>
+      <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">Juzgado / Juez</label><input id="${inp}-juzgado" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text1);font-size:13px" placeholder="Juzgado de Faltas Prov."></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:10px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Que solicitar</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer" onclick="fpCbToggle('${inp}-presc')"><input type="checkbox" id="${inp}-presc" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;pointer-events:none"><div style="user-select:none"><div style="font-size:12px;font-weight:600;color:var(--text1)">Prescripcion</div><div style="font-size:11px;color:var(--text3)">Declaracion de prescripcion (art. 89, Ley 24.449 - 5 anos)</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer" onclick="fpCbToggle('${inp}-morig')"><input type="checkbox" id="${inp}-morig" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;pointer-events:none"><div style="user-select:none"><div style="font-size:12px;font-weight:600;color:var(--text1)">Morigeracion</div><div style="font-size:11px;color:var(--text3)">Exceso minimo - razonabilidad y proporcionalidad</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer" onclick="fpCbToggle('${inp}-nulidad');fpNulidadToggle(${i})"><input type="checkbox" id="${inp}-nulidad" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;pointer-events:none"><div style="user-select:none"><div style="font-size:12px;font-weight:600;color:var(--text1)">Nulidad</div><div style="font-size:11px;color:var(--text3)">Ilegibilidad del acta y/o fotomulta</div></div></div>
+        <div id="${inp}-nulidad-opts" style="display:none;margin-left:26px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="fpCbToggle('${inp}-nul-acta')"><input type="checkbox" id="${inp}-nul-acta" style="width:14px;height:14px;accent-color:var(--accent);pointer-events:none;flex-shrink:0"><span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad del acta</span></div>
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="fpCbToggle('${inp}-nul-foto')"><input type="checkbox" id="${inp}-nul-foto" style="width:14px;height:14px;accent-color:var(--accent);pointer-events:none;flex-shrink:0"><span style="font-size:12px;color:var(--text1);user-select:none">Ilegibilidad de la fotomulta</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer" onclick="fpCbToggle('${inp}-pago-subsidio')"><input type="checkbox" id="${inp}-pago-subsidio" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;pointer-events:none"><div style="user-select:none"><div style="font-size:12px;font-weight:600;color:var(--text1)">Pago voluntario en subsidio</div><div style="font-size:11px;color:var(--text3)">Si no hace lugar a otras peticiones</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer" onclick="fpCbToggle('${inp}-pago-directo')"><input type="checkbox" id="${inp}-pago-directo" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;pointer-events:none"><div style="user-select:none"><div style="font-size:12px;font-weight:600;color:var(--text1)">Pago voluntario directo</div><div style="font-size:11px;color:var(--text3)">Presentacion directa al pago</div></div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function fpNulidadToggle(i) {
+  const opts = document.getElementById(`fp-acta-${i}-nulidad-opts`);
+  const cb = document.getElementById(`fp-acta-${i}-nulidad`);
+  if (opts) opts.style.display = cb.checked ? 'flex' : 'none';
+}
+
+function fpAgregarActa() {
+  const container = document.getElementById('fp-actas-container');
+  container.insertAdjacentHTML('beforeend', fpActaHtml(fpActaCount));
+  fpActaCount++;
+}
+
+function fpEliminarActa(i) {
+  const el = document.getElementById(`fp-acta-${i}`);
+  if (el) { el.remove(); delete fpActaFiles[i]; }
+}
+
+function fpCargarActaPDF(i, input) {
+  const file = input.files[0];
+  if (!file) return;
+  fpActaFiles[i] = file;
+  const label = document.getElementById(`fp-acta-${i}-nombre`);
+  if (label) { label.textContent = 'OK: ' + file.name; label.style.color = 'var(--accent)'; }
+}
+
+async function fpAutoCompletarActa(i) {
+  const archivo = fpActaFiles[i];
+  const btn = document.getElementById(`fp-acta-${i}-btn`);
+  const status = document.getElementById(`fp-acta-${i}-status`);
+  if (!archivo) { status.style.display='block'; status.style.color='#e55'; status.textContent='Subi el PDF del acta primero.'; return; }
+  btn.disabled = true; btn.textContent = 'Procesando...';
+  status.style.display = 'block'; status.style.color = 'var(--text3)'; status.textContent = 'Leyendo acta...';
+  try {
+    const mensajeContenido = [];
+    const actaB64 = await fpAutoLeerBase64(archivo);
+    mensajeContenido.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data:actaB64 } });
+    if (fpAutoArchivos.dni) {
+      const dniB64 = await fpAutoLeerBase64(fpAutoArchivos.dni);
+      mensajeContenido.push({ type:'image', source:{ type:'base64', media_type: fpAutoArchivos.dni.type||'image/jpeg', data:dniB64 } });
+    }
+    mensajeContenido.push({ type:'text', text: 'Analiza los documentos adjuntos (acta de infraccion de transito de la Provincia de Buenos Aires y/o foto de DNI argentino) y extrae los siguientes datos. Responde UNICAMENTE con un objeto JSON valido, sin texto adicional, sin markdown, sin explicaciones:\n{"nombre":"nombre y apellido completo del titular","dni":"numero de DNI sin puntos","domicilio":"domicilio completo","dominio":"patente del vehiculo","vehiculo":"marca modelo año","acta":"numero de acta completo","fechaacta":"fecha y hora formato dd/mm/aaaa - HH:MM hs.","lugar":"lugar de la infraccion","velocidad":"velocidad registrada o vacio","juzgado":"partido o localidad del juzgado o vacio"}\nSi algun dato no aparece deja el campo como cadena vacia. No inventes datos.' });
+    const resp = await fetch('https://rofbahscccdbxbwimjzt.supabase.co/functions/v1/clever-service', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZmJhaHNjY2NkYnhid2ltanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTcwOTEsImV4cCI6MjA5MjU5MzA5MX0.5JuPQgGTZdLwmioiD2UDEJkod4lN-b_19t_AgphbzcY'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:mensajeContenido }] })
+    });
+    if(!resp.ok) throw new Error('Error API: ' + resp.status);
+    const data = await resp.json();
+    const texto = data.content.map(b=>b.text||'').join('');
+    const jsonStr = texto.replace(/```json|```/g,'').trim();
+    const campos = JSON.parse(jsonStr);
+    const set = (id, val) => { const el = document.querySelector('#'+id); if(el && val) el.value = val; };
+    // Datos personales solo si no estan llenos
+    if (!document.getElementById('fp-d-nombre')?.value) set('fp-d-nombre', campos.nombre);
+    if (!document.getElementById('fp-d-dni')?.value)    set('fp-d-dni',    campos.dni);
+    if (!document.getElementById('fp-d-domicilio')?.value) set('fp-d-domicilio', campos.domicilio);
+    // Datos de esta acta
+    set(`fp-acta-${i}-dominio`,   campos.dominio);
+    set(`fp-acta-${i}-vehiculo`,  campos.vehiculo);
+    set(`fp-acta-${i}-acta`,      campos.acta);
+    set(`fp-acta-${i}-fechaacta`, campos.fechaacta);
+    set(`fp-acta-${i}-lugar`,     campos.lugar);
+    set(`fp-acta-${i}-velocidad`, campos.velocidad);
+    set(`fp-acta-${i}-juzgado`,   campos.juzgado);
+    btn.disabled = false; btn.textContent = '&#10024; Completar';
+    const completados = Object.values(campos).filter(v=>v).length;
+    status.style.color = '#2a9d5c'; status.textContent = completados + ' campos completados.';
+  } catch(err) {
+    btn.disabled = false; btn.textContent = '&#10024; Completar';
+    status.style.color = '#e55'; status.textContent = 'Error al procesar. Intenta de nuevo.';
+  }
+}
+
+// Inicializar con acta-0
+document.addEventListener('DOMContentLoaded', function() {
+  const cont = document.getElementById('fp-actas-container');
+  if (cont && cont.children.length === 0) { fpAgregarActa(); }
+});
+// ---- FIN MULTIPLES ACTAS ----
+
 // ---- FIN CARGA AUTOMATICA ----
 
 function toRoman(n){
@@ -6442,26 +6524,52 @@ async function generarFaltaPDF(){
   const dni       = gv('fp-d-dni');
   const domicilio = gv('fp-d-domicilio');
   const caracter  = gv('fp-d-caracter') || 'titular registral del vehiculo';
-  const dominio   = gv('fp-d-dominio');
-  const vehiculo  = gv('fp-d-vehiculo');
-  const acta      = gv('fp-d-acta');
-  const fechaacta = gv('fp-d-fechaacta');
-  const lugar     = gv('fp-d-lugar');
-  const velocidad = gv('fp-d-velocidad');
-  const juzgado   = gv('fp-d-juzgado');
   const extra     = gv('fp-d-extra');
+  const pedirProrroga = cb('fp-d-prorroga');
 
-  const pedirPresc        = cb('fp-d-presc');
-  const pedirMorig        = cb('fp-d-morig');
-  const pedirNulidad      = cb('fp-d-nulidad');
-  const nulActa           = cb('fp-d-nul-acta');
-  const nulFoto           = cb('fp-d-nul-foto');
-  const pedirPagoSubsidio = cb('fp-d-pago-subsidio');
-  const pedirPagoDirecto  = cb('fp-d-pago-directo');
-  const pedirProrroga     = cb('fp-d-prorroga');
+  // Recolectar todas las actas del container
+  const actasEls = document.querySelectorAll('#fp-actas-container > div[id^="fp-acta-"]');
+  const actas = [];
+  actasEls.forEach(el => {
+    const i = el.id.replace('fp-acta-', '');
+    const p = `fp-acta-${i}`;
+    actas.push({
+      dominio:      gv(`${p}-dominio`),
+      vehiculo:     gv(`${p}-vehiculo`),
+      acta:         gv(`${p}-acta`),
+      fechaacta:    gv(`${p}-fechaacta`),
+      lugar:        gv(`${p}-lugar`),
+      velocidad:    gv(`${p}-velocidad`),
+      juzgado:      gv(`${p}-juzgado`),
+      presc:        cb(`${p}-presc`),
+      morig:        cb(`${p}-morig`),
+      nulidad:      cb(`${p}-nulidad`),
+      nulActa:      cb(`${p}-nul-acta`),
+      nulFoto:      cb(`${p}-nul-foto`),
+      pagoSubsidio: cb(`${p}-pago-subsidio`),
+      pagoDirecto:  cb(`${p}-pago-directo`),
+    });
+  });
 
-  const algoPedido = pedirPresc||pedirMorig||pedirNulidad||pedirPagoSubsidio||pedirPagoDirecto;
-  if(!algoPedido){ alert('Tilda al menos una opcion antes de generar el PDF.'); return; }
+  if (actas.length === 0) { alert('No hay infracciones cargadas.'); return; }
+  const algoPedido = actas.some(a => a.presc||a.morig||a.nulidad||a.pagoSubsidio||a.pagoDirecto);
+  if(!algoPedido){ alert('Tilda al menos una opcion en alguna infraccion antes de generar el PDF.'); return; }
+
+  // Para compatibilidad con el resto del codigo, usar primera acta como referencia
+  const dominio   = actas[0].dominio;
+  const vehiculo  = actas[0].vehiculo;
+  const acta      = actas[0].acta;
+  const fechaacta = actas[0].fechaacta;
+  const lugar     = actas[0].lugar;
+  const velocidad = actas[0].velocidad;
+  const juzgado   = actas[0].juzgado;
+  const pedirPresc        = actas.some(a=>a.presc);
+  const pedirMorig        = actas.some(a=>a.morig);
+  const pedirNulidad      = actas.some(a=>a.nulidad);
+  const nulActa           = actas.some(a=>a.nulActa);
+  const nulFoto           = actas.some(a=>a.nulFoto);
+  const pedirPagoSubsidio = actas.some(a=>a.pagoSubsidio);
+  const pedirPagoDirecto  = actas.some(a=>a.pagoDirecto);
 
   writeLine('Bahia Blanca, ' + hoy, fontNormal, 11);
   skip();
@@ -6477,15 +6585,20 @@ async function generarFaltaPDF(){
   if(pedirPagoDirecto)  objetoTexto.push('efectuar PAGO VOLUNTARIO');
   if(pedirPagoSubsidio && !pedirPagoDirecto) objetoTexto.push('solicitar en subsidio acceso al PAGO VOLUNTARIO');
 
-  parrafo('Quien suscribe, ' + (nombre||'[NOMBRE]') + ', DNI N ' + (dni||'[DNI]') + ', con domicilio en ' + (domicilio||'[DOMICILIO]') + ', en caracter de ' + caracter + ' del vehiculo Dominio ' + (dominio||'[DOMINIO]') + ' (' + (vehiculo||'[VEHICULO]') + '), se presenta ante V.S. a fin de ' + objetoTexto.join(', ') + ', respecto del Acta de Infraccion N ' + (acta||'[ACTA]') + ', labrada el dia ' + (fechaacta||'[FECHA]') + ' en ' + (lugar||'[LUGAR]') + ', conforme los fundamentos que a continuacion se exponen.');
+  const actasDesc = actas.map((a,idx) => 'Acta N ' + (a.acta||`[ACTA ${idx+1}]`)).join(', ');
+  parrafo('Quien suscribe, ' + (nombre||'[NOMBRE]') + ', DNI N ' + (dni||'[DNI]') + ', con domicilio en ' + (domicilio||'[DOMICILIO]') + ', en caracter de ' + caracter + ', se presenta ante V.S. a fin de ' + objetoTexto.join(', ') + ', respecto de las siguientes infracciones: ' + actasDesc + ', conforme los fundamentos que a continuacion se exponen.');
 
-  titulo('I. DATOS DE LA INFRACCION');
-  writeLine('Acta N: ' + (acta||'[ACTA]'), fontTimes, 11, 10);
-  writeLine('Fecha y hora: ' + (fechaacta||'[FECHA]'), fontTimes, 11, 10);
-  writeLine('Lugar: ' + (lugar||'[LUGAR]'), fontTimes, 11, 10);
-  writeLine('Vehiculo: Dominio ' + (dominio||'[DOMINIO]') + ' - ' + (vehiculo||'[VEHICULO]'), fontTimes, 11, 10);
-  if(velocidad) writeLine('Velocidad registrada: ' + velocidad, fontTimes, 11, 10);
-  skip();
+  titulo('I. DATOS DE LAS INFRACCIONES');
+  actas.forEach((a, idx) => {
+    if (actas.length > 1) { writeLine((idx+1) + '. Acta N ' + (a.acta||'[ACTA]'), fontTimesBold, 11, 5); }
+    writeLine('Acta N: ' + (a.acta||'[ACTA]'), fontTimes, 11, 10);
+    writeLine('Fecha y hora: ' + (a.fechaacta||'[FECHA]'), fontTimes, 11, 10);
+    writeLine('Lugar: ' + (a.lugar||'[LUGAR]'), fontTimes, 11, 10);
+    writeLine('Vehiculo: Dominio ' + (a.dominio||'[DOMINIO]') + ' - ' + (a.vehiculo||'[VEHICULO]'), fontTimes, 11, 10);
+    if(a.velocidad) writeLine('Velocidad registrada: ' + a.velocidad, fontTimes, 11, 10);
+    skip(0.5);
+  });
+  skip(0.5);
 
   let secNum = 2;
 
@@ -6539,7 +6652,8 @@ async function generarFaltaPDF(){
 
   if(pedirPagoDirecto){
     titulo(toRoman(secNum) + '. PAGO VOLUNTARIO');
-    parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la multa correspondiente al Acta N ' + (acta||'[ACTA]') + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
+    const actasPago = actas.filter(a=>a.pagoDirecto).map(a=>a.acta||'[ACTA]').join(', ');
+    parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la/s multa/s correspondiente/s al/las Acta/s N ' + actasPago + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
     parrafo('Ley Nacional de Transito N 24.449, arts. 72 y ss. Decreto Reglamentario N 779/95. Ley Provincial N 13.927 y su modificatoria Ley N 15.002.');
     secNum++;
   }
@@ -6562,17 +6676,18 @@ async function generarFaltaPDF(){
   writeLine(petNum++ + ') Tenga por presentado el presente descargo en legal tiempo y forma.', fontTimes, 11, 15);
   if(pedirProrroga)     writeLine(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', fontTimes, 11, 15);
   if(pedirPresc)        writeLine(petNum++ + ') Declare prescripta la infraccion imputada y disponga el archivo de las actuaciones.', fontTimes, 11, 15);
-  if(pedirNulidad)      writeLine(petNum++ + ') Declare la NULIDAD del Acta N ' + (acta||'[ACTA]') + ' por los vicios formales denunciados.', fontTimes, 11, 15);
+  if(pedirNulidad)      writeLine(petNum++ + ') Declare la NULIDAD de las actas indicadas por los vicios formales denunciados.', fontTimes, 11, 15);
   if(pedirMorig)        writeLine(petNum++ + ') Aplique los principios de razonabilidad y proporcionalidad, morigerando la sancion al minimo legal.', fontTimes, 11, 15);
   if(pedirPagoSubsidio) writeLine(petNum++ + ') En subsidio de lo anterior, autorice el acceso al pago voluntario con los beneficios de ley.', fontTimes, 11, 15);
-  if(pedirPagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario y proceda conforme a derecho.', fontTimes, 11, 15);
+  if(pedirPagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario de las infracciones indicadas y proceda conforme a derecho.', fontTimes, 11, 15);
   writeLine(petNum++ + ') Provea de conformidad, pues es de JUSTICIA.', fontTimes, 11, 15);
   skip();
   writeLine('Sin otro particular, saludo a Ud. atentamente.', fontTimes, 11);
   skip(3);
   writeLine(nombre||'[NOMBRE]', fontTimesBold, 11);
   writeLine('DNI N ' + (dni||'[DNI]'), fontTimes, 11);
-  writeLine(caracter + ' - Dominio ' + (dominio||'[DOMINIO]'), fontTimes, 11);
+  writeLine(caracter, fontTimes, 11);
+  actas.forEach(a => { if(a.dominio) writeLine('Dominio ' + a.dominio + (a.vehiculo ? ' - ' + a.vehiculo : ''), fontTimes, 11); });
 
   await fpAgregarDniAlPDF(pdfDoc, 'd');
 
