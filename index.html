@@ -7778,7 +7778,7 @@ async function renderEstadisticas(){
   chartHonorarios = new Chart(ctx3,{type:'bar',data:{labels:honLabels,datasets:[{label:'Honorarios cobrados ($)',data:honData,backgroundColor:'#6366f1',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+v.toLocaleString('es-AR')}}}}});
 }
 </script>
-
+<script>
 // ══════════════════════════════════════════════════════════
 // MÓDULO MERCADO — Cotizaciones en tiempo real (dolarapi.com)
 // ══════════════════════════════════════════════════════════
@@ -8157,7 +8157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 <script>
-window._fpData = {};;
+window._fpData = {};
 document.addEventListener('input', function(e){
   if(e.target && e.target.id && e.target.id.startsWith('fp-')){
     window._fpData[e.target.id] = e.target.value;
