@@ -642,6 +642,14 @@ tr.clickable{cursor:pointer}
       <div class="sidebar-item" onclick="svNav(this,'sv-estadisticas')">
         <span class="sidebar-icon">📊</span><span class="sidebar-label">Estadísticas</span>
       </div>
+      <hr class="sidebar-divider"/>
+      <div class="sidebar-section">FX / Cripto</div>
+      <div class="sidebar-item" onclick="svNav(this,'sv-mercado');loadMercado()">
+        <span class="sidebar-icon">🌐</span><span class="sidebar-label">Mercado</span>
+      </div>
+      <div class="sidebar-item" onclick="svNav(this,'sv-fx')">
+        <span class="sidebar-icon">💱</span><span class="sidebar-label">Cambio USD · USDT</span>
+      </div>
     </nav>
     <!-- CONTENT SUPERVISOR -->
     <div class="main-content">
@@ -1082,8 +1090,7 @@ tr.clickable{cursor:pointer}
     </div>
 
     <!-- PANEL ESTADÍSTICAS -->
-    <div id="sv-estadisticas" class="tab-pane">
-      <div style="font-size:20px;font-weight:500;margin-bottom:20px">Estadísticas del estudio</div>
+    <div id="sv-estadisticas" class="tab-pane">      <div style="font-size:20px;font-weight:500;margin-bottom:20px">Estadísticas del estudio</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
         <div style="background:var(--card);border-radius:var(--radius);padding:20px;border:1px solid var(--border)">
           <div style="font-size:15px;font-weight:500;margin-bottom:16px">🤝 Clientes por captador</div>
@@ -1100,6 +1107,157 @@ tr.clickable{cursor:pointer}
           <canvas id="chart-honorarios" height="100"></canvas>
         </div>
       </div>
+    </div>
+
+    <!-- ── MERCADO — Cotizaciones en tiempo real ── -->
+    <div id="sv-mercado" class="tab-pane">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:500;margin-bottom:4px">Mercado</div>
+          <div style="font-size:13px;color:var(--t3)" id="mercado-ultima-act">Cotizaciones en tiempo real · fuente: dolarapi.com</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="mercado-status" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3)">
+            <span id="mercado-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3);display:inline-block"></span>
+            <span id="mercado-status-txt">—</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadMercado()">↻ Actualizar</button>
+        </div>
+      </div>
+
+      <!-- Grilla de cotizaciones -->
+      <div id="mercado-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:28px">
+        <div style="text-align:center;padding:40px;color:var(--t3);font-size:14px;grid-column:1/-1">Cargando cotizaciones…</div>
+      </div>
+
+      <!-- Divisor -->
+      <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:14px">Brecha respecto al oficial</div>
+      <div id="mercado-brechas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:28px"></div>
+
+      <!-- Conversor rápido -->
+      <div class="card" style="max-width:500px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:14px">⚡ Conversor rápido</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="number" id="conv-monto" placeholder="Monto" style="flex:1;min-width:100px;margin:0" oninput="calcConversor()"/>
+          <select id="conv-moneda" onchange="calcConversor()" style="width:auto;margin:0;font-size:14px">
+            <option value="ars_a_usd">ARS → USD</option>
+            <option value="usd_a_ars">USD → ARS</option>
+          </select>
+          <select id="conv-tipo" onchange="calcConversor()" style="width:auto;margin:0;font-size:14px">
+            <option value="blue">Blue</option>
+            <option value="oficial">Oficial</option>
+            <option value="mep">MEP</option>
+            <option value="ccl">CCL</option>
+            <option value="mayorista">Mayorista</option>
+            <option value="cripto">Cripto</option>
+          </select>
+        </div>
+        <div id="conv-resultado" style="margin-top:14px;font-size:22px;font-weight:500;color:var(--blue);min-height:32px"></div>
+        <div id="conv-detalle" style="font-size:12px;color:var(--t3);margin-top:4px"></div>
+      </div>
+    </div>
+
+    <!-- ── FX / CAMBIO USD · USDT ── -->
+    <div id="sv-fx" class="tab-pane">
+      <!-- Encabezado + botón -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:500;margin-bottom:4px">Cambio USD · USDT</div>
+          <div style="font-size:13px;color:var(--t3)">Registro de compras y ventas · resultados por operación</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-fx');resetFxForm()">+ Nueva operación</button>
+      </div>
+
+      <!-- Métricas resumen -->
+      <div id="fx-metrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px"></div>
+
+      <!-- Filtros -->
+      <div class="filter-bar" style="margin-bottom:16px">
+        <select id="fx-fil-tipo" onchange="renderFx()">
+          <option value="">Todas las operaciones</option>
+          <option value="compra_usd">Compra USD</option>
+          <option value="venta_usd">Venta USD</option>
+          <option value="compra_usdt">Compra USDT</option>
+          <option value="venta_usdt">Venta USDT</option>
+        </select>
+        <select id="fx-fil-medio" onchange="renderFx()">
+          <option value="">Todos los medios</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="crypto">Crypto/On-chain</option>
+        </select>
+        <input type="month" id="fx-fil-mes" onchange="renderFx()" style="width:auto;margin:0;font-size:13px" title="Filtrar por mes"/>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fx-fil-mes').value='';document.getElementById('fx-fil-tipo').value='';document.getElementById('fx-fil-medio').value='';renderFx()">✕ Limpiar</button>
+      </div>
+
+      <!-- Lista de operaciones -->
+      <div id="fx-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL FX -->
+<div id="modal-fx" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="fx-modal-title">Nueva operación</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de operación</label>
+        <select id="fx-tipo" onchange="fxTipoChange()">
+          <option value="compra_usd">Compra USD</option>
+          <option value="venta_usd">Venta USD</option>
+          <option value="compra_usdt">Compra USDT</option>
+          <option value="venta_usdt">Venta USDT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="fx-fecha"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="fx-lbl-cantidad">Cantidad (USD)</label>
+        <input type="number" id="fx-cantidad" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Cotización (ARS por unidad)</label>
+        <input type="number" id="fx-cotizacion" placeholder="0.00" min="0" step="0.01" oninput="fxCalcProfit()"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Costo / precio de referencia (ARS)</label>
+        <input type="number" id="fx-costo-ref" placeholder="Cotización de compra o mercado" min="0" step="0.01" oninput="fxCalcProfit()"/>
+      </div>
+      <div class="form-group">
+        <label>Profit estimado (ARS)</label>
+        <input type="number" id="fx-profit" placeholder="Se calcula solo" step="0.01" style="background:var(--green-bg);color:var(--green)"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Contraparte (nombre / alias)</label>
+        <input type="text" id="fx-contraparte" placeholder="Juan Pérez / @juanperez"/>
+      </div>
+      <div class="form-group">
+        <label>Medio de pago</label>
+        <select id="fx-medio">
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia bancaria</option>
+          <option value="crypto">Crypto / On-chain</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notas</label>
+      <textarea id="fx-notas" placeholder="Observaciones opcionales..." style="min-height:56px"></textarea>
+    </div>
+    <div id="fx-error" class="msg-err"></div>
+    <div class="btn-group" style="margin-top:10px">
+      <button class="btn btn-primary" id="fx-save-btn" onclick="saveFx()">Guardar operación</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-fx')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -7621,8 +7779,385 @@ async function renderEstadisticas(){
 }
 </script>
 
+// ══════════════════════════════════════════════════════════
+// MÓDULO MERCADO — Cotizaciones en tiempo real (dolarapi.com)
+// ══════════════════════════════════════════════════════════
+
+let _mercadoData = [];
+
+const MERCADO_CONFIG = {
+  oficial:        { nombre:'Oficial',    icon:'🏦', color:'#6b7280' },
+  blue:           { nombre:'Blue',       icon:'💵', color:'var(--blue)' },
+  bolsa:          { nombre:'MEP',        icon:'📊', color:'#6366f1' },
+  contadoconliqui:{ nombre:'CCL',        icon:'🔄', color:'var(--green)' },
+  mayorista:      { nombre:'Mayorista',  icon:'🏭', color:'#ec4899' },
+  tarjeta:        { nombre:'Tarjeta',    icon:'💳', color:'var(--amber)' },
+  cripto:         { nombre:'Cripto',     icon:'₿',  color:'#eab308' },
+};
+
+async function loadMercado() {
+  const dot = document.getElementById('mercado-dot');
+  const stxt = document.getElementById('mercado-status-txt');
+  const grid = document.getElementById('mercado-grid');
+  if (!grid) return;
+
+  if (dot)  dot.style.background = 'var(--amber)';
+  if (stxt) stxt.textContent = 'Actualizando…';
+  grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--t3);font-size:14px;grid-column:1/-1">Cargando cotizaciones…</div>`;
+
+  try {
+    const res  = await fetch('https://dolarapi.com/v1/dolares');
+    const data = await res.json();
+    _mercadoData = data;
+
+    // Estado
+    if (dot)  dot.style.background = 'var(--green)';
+    if (stxt) stxt.textContent = 'En línea';
+    const el = document.getElementById('mercado-ultima-act');
+    if (el) {
+      const ahora = new Date();
+      el.textContent = `Cotizaciones en tiempo real · actualizado ${ahora.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})} · fuente: dolarapi.com`;
+    }
+
+    renderMercadoGrid(data);
+    renderMercadoBrechas(data);
+    calcConversor();
+  } catch(e) {
+    if (dot)  dot.style.background = 'var(--red)';
+    if (stxt) stxt.textContent = 'Sin conexión';
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:14px;grid-column:1/-1">No se pudo conectar con dolarapi.com. Verificá tu conexión e intentá de nuevo.</div>`;
+  }
+}
+
+function renderMercadoGrid(data) {
+  const grid = document.getElementById('mercado-grid');
+  if (!grid) return;
+  grid.innerHTML = data.map(d => {
+    const cfg = MERCADO_CONFIG[d.casa] || { nombre: d.nombre, icon:'💰', color:'var(--text)' };
+    return `<div class="card" style="padding:16px 18px;border-left:3px solid ${cfg.color}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:20px">${cfg.icon}</span>
+        <span style="font-size:13px;font-weight:600;color:${cfg.color}">${cfg.nombre}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Compra</div>
+          <div style="font-size:18px;font-weight:500">$${fmtNum(d.compra)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Venta</div>
+          <div style="font-size:18px;font-weight:500">$${fmtNum(d.venta)}</div>
+        </div>
+      </div>
+      ${d.fechaActualizacion ? `<div style="font-size:10px;color:var(--t3);margin-top:8px">${fmtFechaHora(d.fechaActualizacion)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMercadoBrechas(data) {
+  const el = document.getElementById('mercado-brechas');
+  if (!el) return;
+  const oficial = data.find(d => d.casa === 'oficial');
+  if (!oficial) { el.innerHTML = ''; return; }
+  const otros = data.filter(d => d.casa !== 'oficial' && d.venta);
+  el.innerHTML = otros.map(d => {
+    const cfg = MERCADO_CONFIG[d.casa] || { nombre: d.nombre, color:'var(--text)' };
+    const brecha = ((d.venta - oficial.venta) / oficial.venta) * 100;
+    const barW = Math.min(Math.abs(brecha), 200); // máx visual 200%
+    return `<div class="card" style="padding:12px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:500;color:${cfg.color}">${cfg.nombre}</span>
+        <span style="font-size:14px;font-weight:600;color:${brecha>0?'var(--amber)':'var(--green)'}">${brecha>=0?'+':''}${brecha.toFixed(1)}%</span>
+      </div>
+      <div style="background:var(--surface3);border-radius:4px;height:6px;overflow:hidden">
+        <div style="height:100%;width:${barW}%;background:${brecha>50?'var(--amber)':'var(--blue)'};border-radius:4px;transition:width .4s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--t3);margin-top:6px">$${fmtNum(oficial.venta)} oficial → $${fmtNum(d.venta)} ${cfg.nombre}</div>
+    </div>`;
+  }).join('');
+}
+
+function calcConversor() {
+  const monto   = parseFloat(document.getElementById('conv-monto')?.value) || 0;
+  const moneda  = document.getElementById('conv-moneda')?.value || 'ars_a_usd';
+  const tipoKey = document.getElementById('conv-tipo')?.value  || 'blue';
+  const resEl   = document.getElementById('conv-resultado');
+  const detEl   = document.getElementById('conv-detalle');
+  if (!resEl) return;
+  if (!monto) { resEl.textContent = ''; if(detEl) detEl.textContent=''; return; }
+
+  const tipoMap = { blue:'blue', oficial:'oficial', mep:'bolsa', ccl:'contadoconliqui', mayorista:'mayorista', cripto:'cripto' };
+  const d = _mercadoData.find(x => x.casa === tipoMap[tipoKey]);
+  if (!d) { resEl.textContent = 'Sin datos'; return; }
+
+  let resultado, detalle;
+  if (moneda === 'ars_a_usd') {
+    resultado = monto / d.venta;
+    detalle = `${fmtArs(monto)} ÷ $${fmtNum(d.venta)} (venta ${MERCADO_CONFIG[d.casa]?.nombre||d.casa})`;
+    resEl.textContent = `U$S ${resultado.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  } else {
+    resultado = monto * d.compra;
+    detalle = `U$S ${monto} × $${fmtNum(d.compra)} (compra ${MERCADO_CONFIG[d.casa]?.nombre||d.casa})`;
+    resEl.textContent = fmtArs(resultado);
+  }
+  if (detEl) detEl.textContent = detalle;
+}
+
+function fmtNum(n) {
+  return (parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtFechaHora(s) {
+  if (!s) return '';
+  try { return new Date(s).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return s; }
+}
+
+// ══════════════════════════════════════════════════════════
+// MÓDULO FX — Compra/Venta USD · USDT
+// ══════════════════════════════════════════════════════════
+
+let fxOps = [];
+let editingFxId = null;
+
+const FX_TIPO_LABEL = {
+  compra_usd:  { label:'Compra USD',  icon:'🟢', color:'var(--green)'  },
+  venta_usd:   { label:'Venta USD',   icon:'🔴', color:'var(--red)'    },
+  compra_usdt: { label:'Compra USDT', icon:'🔵', color:'var(--blue)'   },
+  venta_usdt:  { label:'Venta USDT',  icon:'🟠', color:'var(--amber)'  },
+};
+
+async function loadFx() {
+  const { data } = await sb.from('operaciones_fx').select('*').order('fecha', { ascending: false });
+  fxOps = (data || []).map(r => ({
+    ...r,
+    cantidad:    parseFloat(r.cantidad)    || 0,
+    cotizacion:  parseFloat(r.cotizacion)  || 0,
+    costo_ref:   parseFloat(r.costo_ref)   || 0,
+    profit:      parseFloat(r.profit)      || 0,
+  }));
+}
+
+function renderFx() {
+  const filTipo  = document.getElementById('fx-fil-tipo')?.value  || '';
+  const filMedio = document.getElementById('fx-fil-medio')?.value || '';
+  const filMes   = document.getElementById('fx-fil-mes')?.value   || '';
+
+  let ops = fxOps;
+  if (filTipo)  ops = ops.filter(o => o.tipo === filTipo);
+  if (filMedio) ops = ops.filter(o => o.medio === filMedio);
+  if (filMes)   ops = ops.filter(o => (o.fecha||'').startsWith(filMes));
+
+  // Métricas
+  let totalProfit = 0, totalUsd = 0, totalUsdt = 0;
+  fxOps.forEach(o => {
+    totalProfit += o.profit || 0;
+    if (o.tipo === 'compra_usd' || o.tipo === 'venta_usd') totalUsd += o.cantidad || 0;
+    if (o.tipo === 'compra_usdt' || o.tipo === 'venta_usdt') totalUsdt += o.cantidad || 0;
+  });
+  const mx = document.getElementById('fx-metrics');
+  if (mx) mx.innerHTML = `
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Profit total</div>
+      <div style="font-size:22px;font-weight:500;color:${totalProfit>=0?'var(--green)':'var(--red)'}">${fmtArs(totalProfit)}</div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">USD operados</div>
+      <div style="font-size:22px;font-weight:500">U$S ${totalUsd.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">USDT operados</div>
+      <div style="font-size:22px;font-weight:500">⬡ ${totalUsdt.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Operaciones</div>
+      <div style="font-size:22px;font-weight:500">${fxOps.length}</div>
+    </div>`;
+
+  const el = document.getElementById('fx-list');
+  if (!el) return;
+  if (!ops.length) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--t3);font-size:14px">Sin operaciones registradas</div>`;
+    return;
+  }
+
+  el.innerHTML = ops.map(o => {
+    const meta = FX_TIPO_LABEL[o.tipo] || { label: o.tipo, icon:'💱', color:'var(--text)' };
+    const profitColor = (o.profit||0) >= 0 ? 'var(--green)' : 'var(--red)';
+    const total = (o.cantidad||0) * (o.cotizacion||0);
+    return `<div class="card" style="padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">${meta.icon}</span>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:${meta.color}">${meta.label}</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:2px">${fmtFecha(o.fecha)} · ${o.contraparte||'—'} · ${fxMedioLabel(o.medio)}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:500">${fmtCantidadFx(o.tipo, o.cantidad)} <span style="font-size:12px;color:var(--t3)">@ ${fmtArs(o.cotizacion)}</span></div>
+          <div style="font-size:12px;color:var(--t3)">Total: ${fmtArs(total)}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);flex-wrap:wrap;gap:8px">
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--t3)">Ref: <strong style="color:var(--text)">${fmtArs(o.costo_ref)}</strong></span>
+          <span style="font-size:13px;font-weight:600;color:${profitColor}">Profit: ${fmtArs(o.profit)}</span>
+          ${o.notas ? `<span style="font-size:12px;color:var(--t3);font-style:italic">"${o.notas}"</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-xs" onclick="editFx('${o.id}')">Editar</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteFx('${o.id}')">Borrar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fmtCantidadFx(tipo, cantidad) {
+  if (tipo?.includes('usdt')) return `⬡ ${(cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  return `U$S ${(cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+function fmtMedioFx(m) { return fxMedioLabel(m); }
+function fxMedioLabel(m) {
+  return { efectivo:'Efectivo', transferencia:'Transferencia', crypto:'Crypto' }[m] || m || '—';
+}
+function fmtFecha(f) {
+  if (!f) return '—';
+  const [y,m,d] = f.split('-');
+  return `${d}/${m}/${y}`;
+}
+function fmtArs(n) {
+  return '$' + (parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function fxTipoChange() {
+  const tipo = document.getElementById('fx-tipo').value;
+  const lbl = document.getElementById('fx-lbl-cantidad');
+  if (lbl) lbl.textContent = tipo?.includes('usdt') ? 'Cantidad (USDT)' : 'Cantidad (USD)';
+  fxCalcProfit();
+}
+
+function fxCalcProfit() {
+  const tipo  = document.getElementById('fx-tipo')?.value || '';
+  const cant  = parseFloat(document.getElementById('fx-cantidad')?.value) || 0;
+  const cotiz = parseFloat(document.getElementById('fx-cotizacion')?.value) || 0;
+  const ref   = parseFloat(document.getElementById('fx-costo-ref')?.value) || 0;
+  let profit = 0;
+  if (tipo.startsWith('venta')) {
+    // vendemos más caro de lo que compramos → profit = (cotiz - ref) * cant
+    profit = (cotiz - ref) * cant;
+  } else {
+    // compramos → profit = (ref - cotiz) * cant (positivo si compramos más barato)
+    profit = (ref - cotiz) * cant;
+  }
+  const el = document.getElementById('fx-profit');
+  if (el) {
+    el.value = profit.toFixed(2);
+    el.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+    el.style.background = profit >= 0 ? 'var(--green-bg)' : 'var(--red-bg)';
+  }
+}
+
+function resetFxForm() {
+  editingFxId = null;
+  document.getElementById('fx-modal-title').textContent = 'Nueva operación';
+  document.getElementById('fx-save-btn').textContent = 'Guardar operación';
+  document.getElementById('fx-tipo').value = 'compra_usd';
+  document.getElementById('fx-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fx-cantidad').value = '';
+  document.getElementById('fx-cotizacion').value = '';
+  document.getElementById('fx-costo-ref').value = '';
+  document.getElementById('fx-profit').value = '';
+  document.getElementById('fx-profit').style.color = 'var(--green)';
+  document.getElementById('fx-profit').style.background = 'var(--green-bg)';
+  document.getElementById('fx-contraparte').value = '';
+  document.getElementById('fx-medio').value = 'efectivo';
+  document.getElementById('fx-notas').value = '';
+  document.getElementById('fx-error').textContent = '';
+  fxTipoChange();
+}
+
+function editFx(id) {
+  const o = fxOps.find(x => x.id === id);
+  if (!o) return;
+  editingFxId = id;
+  document.getElementById('fx-modal-title').textContent = 'Editar operación';
+  document.getElementById('fx-save-btn').textContent = 'Actualizar';
+  document.getElementById('fx-tipo').value = o.tipo || 'compra_usd';
+  document.getElementById('fx-fecha').value = o.fecha || '';
+  document.getElementById('fx-cantidad').value = o.cantidad || '';
+  document.getElementById('fx-cotizacion').value = o.cotizacion || '';
+  document.getElementById('fx-costo-ref').value = o.costo_ref || '';
+  document.getElementById('fx-profit').value = o.profit || '';
+  document.getElementById('fx-contraparte').value = o.contraparte || '';
+  document.getElementById('fx-medio').value = o.medio || 'efectivo';
+  document.getElementById('fx-notas').value = o.notas || '';
+  document.getElementById('fx-error').textContent = '';
+  fxTipoChange();
+  openModal('modal-fx');
+}
+
+async function saveFx() {
+  const err = document.getElementById('fx-error');
+  err.textContent = '';
+  const tipo       = document.getElementById('fx-tipo').value;
+  const fecha      = document.getElementById('fx-fecha').value;
+  const cantidad   = parseFloat(document.getElementById('fx-cantidad').value);
+  const cotizacion = parseFloat(document.getElementById('fx-cotizacion').value);
+  const costo_ref  = parseFloat(document.getElementById('fx-costo-ref').value) || 0;
+  const profit     = parseFloat(document.getElementById('fx-profit').value) || 0;
+  const contraparte = document.getElementById('fx-contraparte').value.trim();
+  const medio      = document.getElementById('fx-medio').value;
+  const notas      = document.getElementById('fx-notas').value.trim();
+
+  if (!fecha)           { err.textContent = 'Ingresá la fecha.'; return; }
+  if (!cantidad || cantidad <= 0) { err.textContent = 'Ingresá la cantidad.'; return; }
+  if (!cotizacion || cotizacion <= 0) { err.textContent = 'Ingresá la cotización.'; return; }
+
+  const data = { tipo, fecha, cantidad, cotizacion, costo_ref, profit, contraparte, medio, notas };
+  const btn = document.getElementById('fx-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  let error;
+  if (editingFxId) {
+    ({ error } = await sb.from('operaciones_fx').update(data).eq('id', editingFxId));
+  } else {
+    ({ error } = await sb.from('operaciones_fx').insert([data]));
+  }
+
+  btn.disabled = false;
+  btn.textContent = editingFxId ? 'Actualizar' : 'Guardar operación';
+
+  if (error) { err.textContent = 'Error: ' + error.message; return; }
+  closeModal('modal-fx');
+  await loadFx();
+  renderFx();
+}
+
+async function deleteFx(id) {
+  if (!confirm('¿Borrar esta operación?')) return;
+  await sb.from('operaciones_fx').delete().eq('id', id);
+  await loadFx();
+  renderFx();
+}
+
+// Cargar FX cuando se navega al pane
+const _origSvNav = typeof svNav === 'function' ? svNav : null;
+document.addEventListener('DOMContentLoaded', () => {
+  // Hook en svNav para cargar FX la primera vez
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('click', async (e) => {
+      const item = e.target.closest('[onclick*="sv-fx"]');
+      if (item) { await loadFx(); renderFx(); }
+    });
+  }
+});
+
+</script>
 <script>
-window._fpData = {};
+window._fpData = {};;
 document.addEventListener('input', function(e){
   if(e.target && e.target.id && e.target.id.startsWith('fp-')){
     window._fpData[e.target.id] = e.target.value;
