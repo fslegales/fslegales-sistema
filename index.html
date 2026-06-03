@@ -1171,6 +1171,24 @@ tr.clickable{cursor:pointer}
       <!-- Métricas resumen -->
       <div id="fx-metrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px"></div>
 
+      <!-- Gráfico de caja por moneda -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;align-items:start">
+        <div class="card" style="padding:16px 18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">💼 Posición de caja por moneda</div>
+          <div style="position:relative;height:200px;display:flex;justify-content:center">
+            <canvas id="fx-chart-caja"></canvas>
+          </div>
+          <div id="fx-chart-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div class="card" style="padding:16px 18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">📊 Detalle de posición</div>
+          <div id="fx-caja-detalle" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:14px;padding-top:10px;border-top:1px solid var(--b1)">
+            Posición = compras − ventas por moneda. Positivo = tenés en mano. Negativo = vendiste más de lo que compraste.
+          </div>
+        </div>
+      </div>
+
       <!-- Filtros -->
       <div class="filter-bar" style="margin-bottom:16px">
         <select id="fx-fil-tipo" onchange="renderFx()">
@@ -1218,6 +1236,20 @@ tr.clickable{cursor:pointer}
     </div>
     <div class="form-row">
       <div class="form-group">
+        <label>Cliente / Contraparte</label>
+        <input type="text" id="fx-contraparte" placeholder="Nombre, alias o empresa"/>
+      </div>
+      <div class="form-group">
+        <label>Medio de pago</label>
+        <select id="fx-medio">
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia bancaria</option>
+          <option value="crypto">Crypto / On-chain</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
         <label id="fx-lbl-cantidad">Cantidad (USD)</label>
         <input type="number" id="fx-cantidad" placeholder="0.00" min="0" step="0.01" oninput="fxCalcMonto()"/>
       </div>
@@ -1250,21 +1282,6 @@ tr.clickable{cursor:pointer}
         <input type="number" id="fx-profit" placeholder="Se calcula si ingresás referencia" step="0.01"
           style="background:var(--green-bg);color:var(--green);font-weight:600"/>
         <div style="font-size:11px;color:var(--t3);margin-top:3px" id="fx-profit-hint">(cotiz. actual − referencia) × cantidad</div>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Cliente / Contraparte</label>
-        <input type="text" id="fx-contraparte" placeholder="Nombre, alias o empresa"/>
-      </div>
-      <div class="form-group">
-        <label>Medio de pago</label>
-        <select id="fx-medio">
-          <option value="efectivo">Efectivo</option>
-          <option value="transferencia">Transferencia bancaria</option>
-          <option value="crypto">Crypto / On-chain</option>
-        </select>
       </div>
     </div>
     <div class="form-group">
@@ -8004,6 +8021,7 @@ function renderFx() {
   if (!el) return;
   if (!ops.length) {
     el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--t3);font-size:14px">Sin operaciones registradas</div>`;
+    renderFxCaja([]);
     return;
   }
 
@@ -8038,6 +8056,86 @@ function renderFx() {
       </div>
     </div>`;
   }).join('');
+  renderFxCaja(fxOps);
+}
+
+let _fxChartCaja = null;
+
+function renderFxCaja(ops) {
+  let posUSD = 0, posUSDT = 0, posARS = 0;
+  ops.forEach(o => {
+    const cant  = o.cantidad || 0;
+    const monto = o.monto || (cant * (o.cotizacion || 0));
+    if (o.tipo === 'compra_usd')  { posUSD  += cant;  posARS -= monto; }
+    if (o.tipo === 'venta_usd')   { posUSD  -= cant;  posARS += monto; }
+    if (o.tipo === 'compra_usdt') { posUSDT += cant;  posARS -= monto; }
+    if (o.tipo === 'venta_usdt')  { posUSDT -= cant;  posARS += monto; }
+  });
+
+  const det = document.getElementById('fx-caja-detalle');
+  if (det) {
+    const items = [
+      { label:'ARS en caja',  valor: posARS,  fmt: fmtArs,                color:'#6366f1', icon:'🇦🇷' },
+      { label:'USD en mano',  valor: posUSD,  fmt: v=>`U$S ${fmtNum(v)}`, color:'#22c55e', icon:'💵'  },
+      { label:'USDT en mano', valor: posUSDT, fmt: v=>`⬡ ${fmtNum(v)}`,  color:'#eab308', icon:'₿'   },
+    ];
+    det.innerHTML = items.map(i => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;background:var(--surface2)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">${i.icon}</span>
+          <span style="font-size:13px;color:var(--t3)">${i.label}</span>
+        </div>
+        <span style="font-size:16px;font-weight:600;color:${i.valor>=0?i.color:'var(--red)'}">${i.fmt(i.valor)}</span>
+      </div>`).join('');
+  }
+
+  const canvas = document.getElementById('fx-chart-caja');
+  if (!canvas) return;
+  const arsAbs  = Math.abs(posARS);
+  const usdAbs  = Math.abs(posUSD);
+  const usdtAbs = Math.abs(posUSDT);
+  const total = arsAbs + usdAbs + usdtAbs;
+  const legend = document.getElementById('fx-chart-legend');
+
+  if (!total) {
+    if (_fxChartCaja) { _fxChartCaja.destroy(); _fxChartCaja = null; }
+    canvas.style.display = 'none';
+    if (legend) legend.innerHTML = `<div style="text-align:center;color:var(--t3);font-size:13px">Sin datos aún</div>`;
+    return;
+  }
+  canvas.style.display = '';
+
+  if (_fxChartCaja) _fxChartCaja.destroy();
+  _fxChartCaja = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: ['ARS', 'USD', 'USDT'],
+      datasets: [{ data: [arsAbs, usdAbs, usdtAbs], backgroundColor:['#6366f1','#22c55e','#eab308'], borderWidth:0, hoverOffset:6 }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => {
+          const vals = [fmtArs(posARS), `U$S ${fmtNum(posUSD)}`, `⬡ ${fmtNum(posUSDT)}`];
+          return ` ${vals[ctx.dataIndex]}`;
+        }}}
+      },
+      responsive: true, maintainAspectRatio: false,
+    }
+  });
+
+  if (legend) {
+    const colors = ['#6366f1','#22c55e','#eab308'];
+    const names  = ['ARS', 'USD', 'USDT'];
+    const pcts   = [arsAbs, usdAbs, usdtAbs].map(v => total ? ((v/total)*100).toFixed(1) : 0);
+    legend.innerHTML = names.map((n,i) => `
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+        <span style="width:10px;height:10px;border-radius:2px;background:${colors[i]};flex-shrink:0"></span>
+        <span style="color:var(--t3)">${n}</span>
+        <span style="margin-left:auto;font-weight:500">${pcts[i]}%</span>
+      </div>`).join('');
+  }
 }
 
 function fmtCantidadFx(tipo, cantidad) {
