@@ -1219,23 +1219,40 @@ tr.clickable{cursor:pointer}
     <div class="form-row">
       <div class="form-group">
         <label id="fx-lbl-cantidad">Cantidad (USD)</label>
-        <input type="number" id="fx-cantidad" placeholder="0.00" min="0" step="0.01"/>
+        <input type="number" id="fx-cantidad" placeholder="0.00" min="0" step="0.01" oninput="fxCalcMonto()"/>
       </div>
       <div class="form-group">
         <label>Cotización (ARS por unidad)</label>
-        <input type="number" id="fx-cotizacion" placeholder="0.00" min="0" step="0.01" oninput="fxCalcProfit()"/>
+        <input type="number" id="fx-cotizacion" placeholder="0.00" min="0" step="0.01" oninput="fxCalcMonto()"/>
       </div>
+    </div>
+
+    <!-- Monto recibido/pagado — calculado automático -->
+    <div class="form-group">
+      <label id="fx-lbl-monto">💰 Monto recibido (ARS) — calculado automático</label>
+      <input type="number" id="fx-monto" readonly step="0.01"
+        style="background:var(--surface2);font-weight:600;font-size:16px;cursor:default"
+        placeholder="cantidad × cotización"/>
+      <div style="font-size:11px;color:var(--t3);margin-top:3px" id="fx-monto-hint">Este es el flujo de caja real de la operación</div>
+    </div>
+
+    <!-- Separador profit -->
+    <div style="border-top:1px solid var(--b1);margin:12px 0 10px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:var(--t3);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em">Profit (opcional — para operaciones calzadas)</span>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Costo / precio de referencia (ARS)</label>
-        <input type="number" id="fx-costo-ref" placeholder="Cotización de compra o mercado" min="0" step="0.01" oninput="fxCalcProfit()"/>
+        <label id="fx-lbl-costo-ref">Cotización de referencia (ARS) <span style="font-size:11px;color:var(--t3)">— precio al que compraste / vendiste antes</span></label>
+        <input type="number" id="fx-costo-ref" placeholder="Ej: 1400 (cotiz. de la compra previa)" min="0" step="0.01" oninput="fxCalcProfit()"/>
       </div>
       <div class="form-group">
-        <label>Profit estimado (ARS)</label>
-        <input type="number" id="fx-profit" placeholder="Se calcula solo" step="0.01" style="background:var(--green-bg);color:var(--green)"/>
+        <label>Profit de esta operación (ARS)</label>
+        <input type="number" id="fx-profit" placeholder="Se calcula si ingresás referencia" step="0.01"
+          style="background:var(--green-bg);color:var(--green);font-weight:600"/>
+        <div style="font-size:11px;color:var(--t3);margin-top:3px" id="fx-profit-hint">(cotiz. actual − referencia) × cantidad</div>
       </div>
     </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>Contraparte (nombre / alias)</label>
@@ -1254,7 +1271,7 @@ tr.clickable{cursor:pointer}
       <label>Notas</label>
       <textarea id="fx-notas" placeholder="Observaciones opcionales..." style="min-height:56px"></textarea>
     </div>
-    <div id="fx-error" class="msg-err"></div>
+    <div id="fx-error" class="msg-err" style="display:none"></div>
     <div class="btn-group" style="margin-top:10px">
       <button class="btn btn-primary" id="fx-save-btn" onclick="saveFx()">Guardar operación</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-fx')">Cancelar</button>
@@ -7913,7 +7930,7 @@ function fmtFechaHora(s) {
 }
 
 // ══════════════════════════════════════════════════════════
-// MÓDULO FX — Compra/Venta USD · USDT
+// MÓDULO FX — Compra/Venta USD · USDT  (v2)
 // ══════════════════════════════════════════════════════════
 
 let fxOps = [];
@@ -7927,14 +7944,18 @@ const FX_TIPO_LABEL = {
 };
 
 async function loadFx() {
-  const { data } = await sb.from('operaciones_fx').select('*').order('fecha', { ascending: false });
-  fxOps = (data || []).map(r => ({
-    ...r,
-    cantidad:    parseFloat(r.cantidad)    || 0,
-    cotizacion:  parseFloat(r.cotizacion)  || 0,
-    costo_ref:   parseFloat(r.costo_ref)   || 0,
-    profit:      parseFloat(r.profit)      || 0,
-  }));
+  try {
+    const { data, error } = await sb.from('operaciones_fx').select('*').order('fecha', { ascending: false });
+    if (error) { console.error('loadFx error:', error); return; }
+    fxOps = (data || []).map(r => ({
+      ...r,
+      cantidad:   parseFloat(r.cantidad)   || 0,
+      cotizacion: parseFloat(r.cotizacion) || 0,
+      monto:      parseFloat(r.monto)      || 0,
+      costo_ref:  parseFloat(r.costo_ref)  || 0,
+      profit:     parseFloat(r.profit)     || 0,
+    }));
+  } catch(e) { console.error('loadFx catch:', e); }
 }
 
 function renderFx() {
@@ -7947,30 +7968,36 @@ function renderFx() {
   if (filMedio) ops = ops.filter(o => o.medio === filMedio);
   if (filMes)   ops = ops.filter(o => (o.fecha||'').startsWith(filMes));
 
-  // Métricas
-  let totalProfit = 0, totalUsd = 0, totalUsdt = 0;
+  // ── Métricas globales ──
+  let flujoCobrado = 0, flujoPagado = 0, profitCalzado = 0;
   fxOps.forEach(o => {
-    totalProfit += o.profit || 0;
-    if (o.tipo === 'compra_usd' || o.tipo === 'venta_usd') totalUsd += o.cantidad || 0;
-    if (o.tipo === 'compra_usdt' || o.tipo === 'venta_usdt') totalUsdt += o.cantidad || 0;
+    const monto = o.monto || (o.cantidad * o.cotizacion);
+    if (o.tipo === 'venta_usd' || o.tipo === 'venta_usdt') flujoCobrado += monto;
+    else flujoPagado += monto;
+    if (o.profit) profitCalzado += o.profit;
   });
+
   const mx = document.getElementById('fx-metrics');
   if (mx) mx.innerHTML = `
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Profit total</div>
-      <div style="font-size:22px;font-weight:500;color:${totalProfit>=0?'var(--green)':'var(--red)'}">${fmtArs(totalProfit)}</div>
+    <div class="card" style="padding:14px 16px;border-left:3px solid var(--green)">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Flujo cobrado (ventas)</div>
+      <div style="font-size:20px;font-weight:500;color:var(--green)">${fmtArs(flujoCobrado)}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px">Lo que entraste en caja vendiendo</div>
     </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">USD operados</div>
-      <div style="font-size:22px;font-weight:500">U$S ${totalUsd.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    <div class="card" style="padding:14px 16px;border-left:3px solid var(--red)">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Flujo pagado (compras)</div>
+      <div style="font-size:20px;font-weight:500;color:var(--red)">${fmtArs(flujoPagado)}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px">Lo que saliste de caja comprando</div>
     </div>
-    <div class="card" style="padding:14px 16px">
-      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">USDT operados</div>
-      <div style="font-size:22px;font-weight:500">⬡ ${totalUsdt.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    <div class="card" style="padding:14px 16px;border-left:3px solid ${profitCalzado>=0?'var(--blue)':'var(--amber)'}">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Profit calzado acumulado</div>
+      <div style="font-size:20px;font-weight:500;color:${profitCalzado>=0?'var(--blue)':'var(--amber)'}">${fmtArs(profitCalzado)}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px">Ganancia real en ops. calzadas</div>
     </div>
     <div class="card" style="padding:14px 16px">
       <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Operaciones</div>
-      <div style="font-size:22px;font-weight:500">${fxOps.length}</div>
+      <div style="font-size:20px;font-weight:500">${fxOps.length}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px">${fxOps.filter(o=>o.profit).length} con profit registrado</div>
     </div>`;
 
   const el = document.getElementById('fx-list');
@@ -7981,9 +8008,9 @@ function renderFx() {
   }
 
   el.innerHTML = ops.map(o => {
-    const meta = FX_TIPO_LABEL[o.tipo] || { label: o.tipo, icon:'💱', color:'var(--text)' };
-    const profitColor = (o.profit||0) >= 0 ? 'var(--green)' : 'var(--red)';
-    const total = (o.cantidad||0) * (o.cotizacion||0);
+    const meta  = FX_TIPO_LABEL[o.tipo] || { label: o.tipo, icon:'💱', color:'var(--text)' };
+    const monto = o.monto || (o.cantidad * o.cotizacion);
+    const esVenta = o.tipo?.startsWith('venta');
     return `<div class="card" style="padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:10px">
@@ -7994,20 +8021,20 @@ function renderFx() {
           </div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:16px;font-weight:500">${fmtCantidadFx(o.tipo, o.cantidad)} <span style="font-size:12px;color:var(--t3)">@ ${fmtArs(o.cotizacion)}</span></div>
-          <div style="font-size:12px;color:var(--t3)">Total: ${fmtArs(total)}</div>
+          <div style="font-size:13px;color:var(--t3);margin-bottom:2px">${fmtCantidadFx(o.tipo, o.cantidad)} @ $${fmtNum(o.cotizacion)}</div>
+          <div style="font-size:17px;font-weight:600;color:${esVenta?'var(--green)':'var(--red)'}">${esVenta?'+ ':'− '}${fmtArs(monto)}</div>
+          <div style="font-size:10px;color:var(--t3)">${esVenta?'cobrado':'pagado'}</div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);flex-wrap:wrap;gap:8px">
-        <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <span style="font-size:12px;color:var(--t3)">Ref: <strong style="color:var(--text)">${fmtArs(o.costo_ref)}</strong></span>
-          <span style="font-size:13px;font-weight:600;color:${profitColor}">Profit: ${fmtArs(o.profit)}</span>
-          ${o.notas ? `<span style="font-size:12px;color:var(--t3);font-style:italic">"${o.notas}"</span>` : ''}
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-xs" onclick="editFx('${o.id}')">Editar</button>
-          <button class="btn btn-danger btn-xs" onclick="deleteFx('${o.id}')">Borrar</button>
-        </div>
+      ${o.profit ? `
+      <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:${o.profit>=0?'var(--green-bg)':'var(--red-bg)'};display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--t3)">Profit calzado <span style="font-size:10px">(ref: $${fmtNum(o.costo_ref)})</span></span>
+        <span style="font-size:14px;font-weight:700;color:${o.profit>=0?'var(--green)':'var(--red)'}">${o.profit>=0?'+':''}${fmtArs(o.profit)}</span>
+      </div>` : `<div style="margin-top:8px;font-size:11px;color:var(--t3);font-style:italic">Sin profit registrado en esta operación</div>`}
+      ${o.notas ? `<div style="margin-top:6px;font-size:12px;color:var(--t3);font-style:italic">"${o.notas}"</div>` : ''}
+      <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-ghost btn-xs" onclick="editFx('${o.id}')">Editar</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteFx('${o.id}')">Borrar</button>
       </div>
     </div>`;
   }).join('');
@@ -8017,7 +8044,6 @@ function fmtCantidadFx(tipo, cantidad) {
   if (tipo?.includes('usdt')) return `⬡ ${(cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   return `U$S ${(cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 }
-function fmtMedioFx(m) { return fxMedioLabel(m); }
 function fxMedioLabel(m) {
   return { efectivo:'Efectivo', transferencia:'Transferencia', crypto:'Crypto' }[m] || m || '—';
 }
@@ -8029,27 +8055,55 @@ function fmtFecha(f) {
 function fmtArs(n) {
   return '$' + (parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+function fmtNum(n) {
+  return (parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 
 function fxTipoChange() {
-  const tipo = document.getElementById('fx-tipo').value;
+  const tipo = document.getElementById('fx-tipo')?.value || '';
+  const esUsdt = tipo.includes('usdt');
+  const esVenta = tipo.startsWith('venta');
   const lbl = document.getElementById('fx-lbl-cantidad');
-  if (lbl) lbl.textContent = tipo?.includes('usdt') ? 'Cantidad (USDT)' : 'Cantidad (USD)';
+  if (lbl) lbl.textContent = esUsdt ? 'Cantidad (USDT)' : 'Cantidad (USD)';
+  const lblMonto = document.getElementById('fx-lbl-monto');
+  if (lblMonto) lblMonto.textContent = esVenta
+    ? '💰 Monto recibido (ARS) — calculado automático'
+    : '💸 Monto pagado (ARS) — calculado automático';
+  const lblRef = document.getElementById('fx-lbl-costo-ref');
+  if (lblRef) lblRef.innerHTML = esVenta
+    ? 'Cotización de referencia (ARS) <span style="font-size:11px;color:var(--t3)">— precio al que compraste antes</span>'
+    : 'Cotización de referencia (ARS) <span style="font-size:11px;color:var(--t3)">— precio al que vas a vender después</span>';
+  const hint = document.getElementById('fx-profit-hint');
+  if (hint) hint.textContent = esVenta
+    ? '(cotiz. venta − cotiz. compra) × cantidad'
+    : '(cotiz. venta esperada − cotiz. compra) × cantidad';
+  fxCalcMonto();
+}
+
+function fxCalcMonto() {
+  const cant  = parseFloat(document.getElementById('fx-cantidad')?.value)   || 0;
+  const cotiz = parseFloat(document.getElementById('fx-cotizacion')?.value) || 0;
+  const monto = cant * cotiz;
+  const el = document.getElementById('fx-monto');
+  if (el) el.value = monto > 0 ? monto.toFixed(2) : '';
   fxCalcProfit();
 }
 
 function fxCalcProfit() {
   const tipo  = document.getElementById('fx-tipo')?.value || '';
-  const cant  = parseFloat(document.getElementById('fx-cantidad')?.value) || 0;
+  const cant  = parseFloat(document.getElementById('fx-cantidad')?.value)   || 0;
   const cotiz = parseFloat(document.getElementById('fx-cotizacion')?.value) || 0;
-  const ref   = parseFloat(document.getElementById('fx-costo-ref')?.value) || 0;
-  let profit = 0;
-  if (tipo.startsWith('venta')) {
-    // vendemos más caro de lo que compramos → profit = (cotiz - ref) * cant
-    profit = (cotiz - ref) * cant;
-  } else {
-    // compramos → profit = (ref - cotiz) * cant (positivo si compramos más barato)
-    profit = (ref - cotiz) * cant;
+  const ref   = parseFloat(document.getElementById('fx-costo-ref')?.value)  || 0;
+  if (!ref) {
+    const el = document.getElementById('fx-profit');
+    if (el) { el.value = ''; el.style.color='var(--green)'; el.style.background='var(--green-bg)'; }
+    return;
   }
+  // venta: ganás si vendés más caro que compraste → (cotizVenta - cotizCompra) * cant
+  // compra: ganás si comprás más barato que el precio esperado de venta → (cotizVentaEsperada - cotizCompra) * cant
+  const profit = tipo.startsWith('venta')
+    ? (cotiz - ref) * cant
+    : (ref - cotiz) * cant;
   const el = document.getElementById('fx-profit');
   if (el) {
     el.value = profit.toFixed(2);
@@ -8066,6 +8120,7 @@ function resetFxForm() {
   document.getElementById('fx-fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('fx-cantidad').value = '';
   document.getElementById('fx-cotizacion').value = '';
+  document.getElementById('fx-monto').value = '';
   document.getElementById('fx-costo-ref').value = '';
   document.getElementById('fx-profit').value = '';
   document.getElementById('fx-profit').style.color = 'var(--green)';
@@ -8073,7 +8128,8 @@ function resetFxForm() {
   document.getElementById('fx-contraparte').value = '';
   document.getElementById('fx-medio').value = 'efectivo';
   document.getElementById('fx-notas').value = '';
-  document.getElementById('fx-error').textContent = '';
+  const errEl = document.getElementById('fx-error');
+  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
   fxTipoChange();
 }
 
@@ -8087,65 +8143,85 @@ function editFx(id) {
   document.getElementById('fx-fecha').value = o.fecha || '';
   document.getElementById('fx-cantidad').value = o.cantidad || '';
   document.getElementById('fx-cotizacion').value = o.cotizacion || '';
+  document.getElementById('fx-monto').value = o.monto || '';
   document.getElementById('fx-costo-ref').value = o.costo_ref || '';
   document.getElementById('fx-profit').value = o.profit || '';
   document.getElementById('fx-contraparte').value = o.contraparte || '';
   document.getElementById('fx-medio').value = o.medio || 'efectivo';
   document.getElementById('fx-notas').value = o.notas || '';
-  document.getElementById('fx-error').textContent = '';
+  const errEl = document.getElementById('fx-error');
+  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
   fxTipoChange();
   openModal('modal-fx');
 }
 
 async function saveFx() {
-  const err = document.getElementById('fx-error');
-  err.textContent = '';
+  const errEl = document.getElementById('fx-error');
+  errEl.textContent = '';
+  errEl.style.display = 'none';
+
   const tipo       = document.getElementById('fx-tipo').value;
   const fecha      = document.getElementById('fx-fecha').value;
   const cantidad   = parseFloat(document.getElementById('fx-cantidad').value);
   const cotizacion = parseFloat(document.getElementById('fx-cotizacion').value);
-  const costo_ref  = parseFloat(document.getElementById('fx-costo-ref').value) || 0;
-  const profit     = parseFloat(document.getElementById('fx-profit').value) || 0;
-  const contraparte = document.getElementById('fx-contraparte').value.trim();
+  const monto      = parseFloat(document.getElementById('fx-monto').value) || (cantidad * cotizacion);
+  const costo_ref  = parseFloat(document.getElementById('fx-costo-ref').value) || null;
+  const profit     = parseFloat(document.getElementById('fx-profit').value) || null;
+  const contraparte = document.getElementById('fx-contraparte').value.trim() || null;
   const medio      = document.getElementById('fx-medio').value;
-  const notas      = document.getElementById('fx-notas').value.trim();
+  const notas      = document.getElementById('fx-notas').value.trim() || null;
 
-  if (!fecha)           { err.textContent = 'Ingresá la fecha.'; return; }
-  if (!cantidad || cantidad <= 0) { err.textContent = 'Ingresá la cantidad.'; return; }
-  if (!cotizacion || cotizacion <= 0) { err.textContent = 'Ingresá la cotización.'; return; }
+  // Validaciones
+  if (!fecha)              { showFxError('Ingresá la fecha.'); return; }
+  if (!cantidad || cantidad <= 0) { showFxError('Ingresá la cantidad.'); return; }
+  if (!cotizacion || cotizacion <= 0) { showFxError('Ingresá la cotización.'); return; }
 
-  const data = { tipo, fecha, cantidad, cotizacion, costo_ref, profit, contraparte, medio, notas };
   const btn = document.getElementById('fx-save-btn');
   btn.disabled = true;
   btn.textContent = 'Guardando…';
 
-  let error;
-  if (editingFxId) {
-    ({ error } = await sb.from('operaciones_fx').update(data).eq('id', editingFxId));
-  } else {
-    ({ error } = await sb.from('operaciones_fx').insert([data]));
+  const payload = { tipo, fecha, cantidad, cotizacion, monto, contraparte, medio, notas };
+  if (costo_ref !== null) payload.costo_ref = costo_ref;
+  if (profit !== null)    payload.profit    = profit;
+
+  try {
+    let result;
+    if (editingFxId) {
+      result = await sb.from('operaciones_fx').update(payload).eq('id', editingFxId);
+    } else {
+      result = await sb.from('operaciones_fx').insert([payload]);
+    }
+    if (result.error) throw result.error;
+    closeModal('modal-fx');
+    await loadFx();
+    renderFx();
+  } catch(e) {
+    console.error('saveFx error:', e);
+    showFxError('Error al guardar: ' + (e.message || JSON.stringify(e)));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editingFxId ? 'Actualizar' : 'Guardar operación';
   }
+}
 
-  btn.disabled = false;
-  btn.textContent = editingFxId ? 'Actualizar' : 'Guardar operación';
-
-  if (error) { err.textContent = 'Error: ' + error.message; return; }
-  closeModal('modal-fx');
-  await loadFx();
-  renderFx();
+function showFxError(msg) {
+  const el = document.getElementById('fx-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 
 async function deleteFx(id) {
   if (!confirm('¿Borrar esta operación?')) return;
-  await sb.from('operaciones_fx').delete().eq('id', id);
-  await loadFx();
-  renderFx();
+  try {
+    await sb.from('operaciones_fx').delete().eq('id', id);
+    await loadFx();
+    renderFx();
+  } catch(e) { alert('Error al borrar: ' + e.message); }
 }
 
 // Cargar FX cuando se navega al pane
-const _origSvNav = typeof svNav === 'function' ? svNav : null;
 document.addEventListener('DOMContentLoaded', () => {
-  // Hook en svNav para cargar FX la primera vez
   const sidebar = document.querySelector('.sidebar');
   if (sidebar) {
     sidebar.addEventListener('click', async (e) => {
