@@ -2296,9 +2296,11 @@ function logout(){
   document.querySelectorAll('.app').forEach(a=>a.classList.remove('active'));
   document.getElementById('app-login').style.display='flex';
   // Resetear sidebars al primer item
-  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
+  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector('#sv-sidebar .sidebar-item[onclick*="sv-tareas"]')?.classList.add('active');
   document.querySelectorAll('#emp-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
-  document.querySelectorAll('#app-supervisor .tab-pane').forEach((p,i)=>p.classList.toggle('active',i===0));
+  document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sv-tareas')?.classList.add('active');
   // Empleado: primer pane es emp-inicio
   const empPanes=document.querySelectorAll('#app-empleado .tab-pane');
   empPanes.forEach((p,i)=>p.classList.toggle('active',i===0));
@@ -2558,8 +2560,10 @@ async function loadSupervisor(){
   document.getElementById('app-supervisor').classList.add('active');
   document.getElementById('sv-username').textContent=currentUser.nombre;
   populateEmpSelects(); populateFilters(); populateClienteSelects();
-  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
-  document.querySelectorAll('#app-supervisor .tab-pane').forEach((p,i)=>p.classList.toggle('active',i===0));
+  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector('#sv-sidebar .sidebar-item[onclick*="sv-tareas"]')?.classList.add('active');
+  document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sv-tareas')?.classList.add('active');
   renderSvTareas();
   await autoArchivar();
 }
