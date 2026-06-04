@@ -1155,6 +1155,37 @@ tr.clickable{cursor:pointer}
         <div id="conv-resultado" style="margin-top:14px;font-size:22px;font-weight:500;color:var(--blue);min-height:32px"></div>
         <div id="conv-detalle" style="font-size:12px;color:var(--t3);margin-top:4px"></div>
       </div>
+
+      <!-- ── WALLET USDT BEP-20 ── -->
+      <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin:28px 0 14px">Wallet USDT</div>
+      <div class="card" style="max-width:420px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💵</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--text)">Saldo USDT</div>
+            <div style="font-size:11px;color:var(--t3)">BEP-20 · Binance Smart Chain</div>
+          </div>
+          <span id="usdt-dot" style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--t3);flex-shrink:0"></span>
+        </div>
+
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Balance actual</div>
+          <div id="usdt-balance" style="font-size:30px;font-weight:300;font-family:'DM Mono',monospace;color:var(--text);line-height:1">—</div>
+          <div id="usdt-sub" style="font-size:12px;color:var(--t3);margin-top:5px">—</div>
+        </div>
+
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Wallet</div>
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--t2);word-break:break-all">0x599976526bfb091D367910BA801D8F302909E13A</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="usdt-time" style="flex:1;font-size:11px;color:var(--t3)"></span>
+          <button class="btn btn-ghost btn-sm" onclick="fetchUsdtBalance()">↻ Actualizar</button>
+        </div>
+        <div id="usdt-error" style="display:none;margin-top:10px;font-size:12px;color:var(--red);background:var(--red-bg);border-radius:var(--radius);padding:8px 10px"></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--t3)">🔒 Solo lectura · datos públicos de BSCScan</div>
+      </div>
     </div>
 
     <!-- ── FX / CAMBIO USD · USDT ── -->
@@ -8340,6 +8371,60 @@ document.addEventListener('input', function(e){
 document.addEventListener('change', function(e){
   if(e.target && e.target.id && e.target.id.startsWith('fp-')){
     window._fpData[e.target.id] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+  }
+});
+</script>
+
+<script>
+// ── WALLET USDT BEP-20 ──
+const USDT_WALLET   = '0x599976526bfb091D367910BA801D8F302909E13A';
+const USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
+
+async function fetchUsdtBalance() {
+  const dot   = document.getElementById('usdt-dot');
+  const balEl = document.getElementById('usdt-balance');
+  const subEl = document.getElementById('usdt-sub');
+  const timeEl= document.getElementById('usdt-time');
+  const errEl = document.getElementById('usdt-error');
+  if (!balEl) return;
+
+  if (dot)   dot.style.background = '#f59e0b';
+  balEl.textContent = '…';
+  if (subEl)  subEl.textContent = 'Consultando BSC…';
+  if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  try {
+    const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${USDT_WALLET}&tag=latest&apikey=YourApiKeyToken`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.status === '1' && data.result != null) {
+      const balance = Number(BigInt(data.result)) / 1e18;
+      balEl.textContent = balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDT';
+      if (subEl)  subEl.textContent = '≈ U$D ' + balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (timeEl) timeEl.textContent = 'Act. ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      if (dot)    dot.style.background = 'var(--green)';
+    } else {
+      throw new Error(data.message || 'Sin respuesta');
+    }
+  } catch(e) {
+    balEl.textContent = '—';
+    if (subEl)  subEl.textContent = '';
+    if (timeEl) timeEl.textContent = '';
+    if (dot)    dot.style.background = 'var(--red)';
+    if (errEl)  { errEl.textContent = 'No se pudo obtener el saldo. Intentá de nuevo.'; errEl.style.display = 'block'; }
+  }
+}
+
+// Auto-fetch al entrar a Mercado
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('click', (e) => {
+      if (e.target.closest('[onclick*="sv-mercado"]')) {
+        setTimeout(fetchUsdtBalance, 300);
+      }
+    });
   }
 });
 </script>
