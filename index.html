@@ -2556,14 +2556,16 @@ function populateEmpFilters(){
 
 // -- Supervisor --------------------------------
 async function loadSupervisor(){
-  await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
+  // Mostrar la app ANTES de cargar datos para evitar pantalla negra
   document.getElementById('app-supervisor').classList.add('active');
   document.getElementById('sv-username').textContent=currentUser.nombre;
-  populateEmpSelects(); populateFilters(); populateClienteSelects();
   document.querySelectorAll('#sv-sidebar .sidebar-item').forEach(el=>el.classList.remove('active'));
   document.querySelector('#sv-sidebar .sidebar-item[onclick*="sv-tareas"]')?.classList.add('active');
   document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('sv-tareas')?.classList.add('active');
+  // Cargar datos
+  await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
+  populateEmpSelects(); populateFilters(); populateClienteSelects();
   renderSvTareas();
   await autoArchivar();
 }
