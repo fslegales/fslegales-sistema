@@ -1,3 +1,5 @@
+Fix 1: OK
+Fix 2 old found: False
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -680,7 +682,7 @@ tr.clickable{cursor:pointer}
           </select>
           <select id="fil-mes" onchange="renderSvTareas()"></select>
         </div>
-        <div id="sv-task-list"><div style="color:var(--text3);font-size:13px;padding:40px 0;text-align:center">Cargando causas…</div></div>
+        <div id="sv-task-list"></div>
       </div>
 
       <!-- CARTA DOCUMENTO -->
@@ -914,7 +916,7 @@ tr.clickable{cursor:pointer}
       <div id="sv-dashboard" class="tab-pane"><div id="dashboard-content"></div></div>
 
       <!-- ── PANES FINANZAS ── -->
-      <div id="sv-fin-resumen" class="tab-pane">
+<div id="sv-fin-resumen" class="tab-pane">
       <div style="margin-bottom:20px"><div style="font-size:20px;font-weight:500;margin-bottom:4px">Resumen del mes</div><div style="font-size:13px;color:var(--t3)" id="resumen-periodo"></div></div>
       <div class="metrics" id="resumen-metrics"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -2288,7 +2290,8 @@ async function doLogin(){
   currentUser={role,nombre:roleLabel(role)};
   document.getElementById('login-pin').value='';
   document.getElementById('app-login').style.display='none';
-  await loadSupervisor();
+  if(role==='supervisor') await loadSupervisor();
+  else await loadEmpleado();
 }
 function logout(){
   currentUser=null; openThreads={}; threadComments={};
@@ -2296,11 +2299,9 @@ function logout(){
   document.querySelectorAll('.app').forEach(a=>a.classList.remove('active'));
   document.getElementById('app-login').style.display='flex';
   // Resetear sidebars al primer item
-  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach(el=>el.classList.remove('active'));
-  document.querySelector('#sv-sidebar .sidebar-item[onclick*="sv-tareas"]')?.classList.add('active');
+  document.querySelectorAll('#sv-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
   document.querySelectorAll('#emp-sidebar .sidebar-item').forEach((el,i)=>el.classList.toggle('active',i===0));
-  document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById('sv-tareas')?.classList.add('active');
+  document.querySelectorAll('#app-supervisor .tab-pane').forEach((p,i)=>p.classList.toggle('active',i===0));
   // Empleado: primer pane es emp-inicio
   const empPanes=document.querySelectorAll('#app-empleado .tab-pane');
   empPanes.forEach((p,i)=>p.classList.toggle('active',i===0));
@@ -2556,17 +2557,18 @@ function populateEmpFilters(){
 
 // -- Supervisor --------------------------------
 async function loadSupervisor(){
-  // Mostrar la app ANTES de cargar datos para evitar pantalla negra
+  // Activar app ANTES del await para evitar pantalla negra
   document.getElementById('app-supervisor').classList.add('active');
   document.getElementById('sv-username').textContent=currentUser.nombre;
+  // Asegurar que sv-tareas esté activo desde el inicio
   document.querySelectorAll('#sv-sidebar .sidebar-item').forEach(el=>el.classList.remove('active'));
   document.querySelector('#sv-sidebar .sidebar-item[onclick*="sv-tareas"]')?.classList.add('active');
   document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById('sv-tareas')?.classList.add('active');
-  // Cargar datos
+  const tareasPane=document.getElementById('sv-tareas');
+  if(tareasPane) tareasPane.classList.add('active');
+  // Cargar datos (el pane ya es visible con el loading state)
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
-  populateEmpSelects(); populateFilters(); populateClienteSelects();
-  renderSvTareas();
+  populateEmpSelects(); populateFilters(); populateClienteSelects(); renderSvTareas();
   await autoArchivar();
 }
 function populateEmpSelects(){
