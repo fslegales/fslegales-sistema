@@ -2368,6 +2368,11 @@ async function doLogin(){
   document.getElementById('login-pin').value='';
   document.getElementById('app-login').style.display='none';
   await loadSupervisor();
+  // Forzar sv-tareas despues de todo lo que pueda correr post-login
+  setTimeout(()=>{
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('sv-tareas').classList.add('active');
+  }, 1500);
 }
 function logout(){
   currentUser=null; openThreads={}; threadComments={};
