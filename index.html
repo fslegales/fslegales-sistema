@@ -1198,122 +1198,70 @@ tr.clickable{cursor:pointer}
 
     <!-- ── FX / CAMBIO USD · USDT ── -->
     <div id="sv-fx" class="tab-pane">
-      <!-- Encabezado + botón -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-size:20px;font-weight:500;margin-bottom:4px">Cambio USD · USDT</div>
-          <div style="font-size:13px;color:var(--t3)">Registro de compras y ventas · resultados por operación</div>
-        </div>
-        <button class="btn btn-primary" onclick="openModal('modal-fx');resetFxForm()">+ Nueva operación</button>
-      </div>
+  <div style="font-size:20px;font-weight:500;margin-bottom:4px">Caja de cambio</div>
+  <div style="font-size:13px;color:var(--t3);margin-bottom:20px">Saldos en tiempo real · ARS · USD · USDT</div>
 
-      <!-- Métricas resumen -->
-      <div id="fx-metrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px"></div>
+  <!-- SALDOS -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+    <div class="card" style="padding:18px;border-left:3px solid #6366f1">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Caja ARS</div>
+      <div style="font-size:28px;font-weight:300;font-family:'DM Mono',monospace;color:#6366f1" id="caja-ars-val">$0</div>
+    </div>
+    <div class="card" style="padding:18px;border-left:3px solid #22c55e">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Caja USD</div>
+      <div style="font-size:28px;font-weight:300;font-family:'DM Mono',monospace;color:#22c55e" id="caja-usd-val">U$S 0</div>
+    </div>
+    <div class="card" style="padding:18px;border-left:3px solid #eab308">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Caja USDT</div>
+      <div style="font-size:28px;font-weight:300;font-family:'DM Mono',monospace;color:#eab308" id="caja-usdt-val">⬡ 0</div>
+    </div>
+  </div>
 
-      <!-- Gráfico de caja por moneda -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;align-items:start">
-        <div class="card" style="padding:16px 18px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:14px">💼 Posición de caja por moneda</div>
-          <div style="position:relative;height:200px;display:flex;justify-content:center">
-            <canvas id="fx-chart-caja"></canvas>
-          </div>
-          <div id="fx-chart-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
-        </div>
-        <div class="card" style="padding:16px 18px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:14px">📊 Detalle de posición</div>
-          <div id="fx-caja-detalle" style="display:flex;flex-direction:column;gap:10px"></div>
-          <div style="font-size:10px;color:var(--t3);margin-top:14px;padding-top:10px;border-top:1px solid var(--b1)">
-            Posición = compras − ventas por moneda. Positivo = tenés en mano. Negativo = vendiste más de lo que compraste.
-          </div>
-        </div>
-      </div>
-
-      <!-- Filtros -->
-      <div class="filter-bar" style="margin-bottom:16px">
-        <select id="fx-fil-tipo" onchange="renderFx()">
-          <option value="">Todas las operaciones</option>
-          <optgroup label="Operaciones propias">
-            <option value="compra_usd">Compra USD</option>
-            <option value="venta_usd">Venta USD</option>
-            <option value="compra_usdt">Compra USDT</option>
-            <option value="venta_usdt">Venta USDT</option>
-          </optgroup>
-          <optgroup label="Mesa de cambio (clientes)">
-            <option value="cliente_venta_usdt">Le vendo USDT al cliente</option>
-            <option value="cliente_compra_usdt">Le compro USDT / recompra</option>
-          </optgroup>
+  <!-- NUEVA OPERACION -->
+  <div class="card" style="padding:20px;margin-bottom:20px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:16px">+ Nueva operación</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="form-group">
+        <label>Tipo de operación</label>
+        <select id="caja-op-tipo" onchange="cajaOpChange()" style="margin:0">
+          <option value="usd_ars">Doy USD → recibo ARS</option>
+          <option value="ars_usd">Doy ARS → recibo USD</option>
+          <option value="usdt_usd">Doy USDT → recibo USD</option>
+          <option value="usd_usdt">Doy USD → recibo USDT</option>
+          <option value="p2p">P2P (recibo USD, entrego USDT, recibo ARS)</option>
         </select>
-        <select id="fx-fil-medio" onchange="renderFx()">
-          <option value="">Todos los medios</option>
+      </div>
+      <div class="form-group">
+        <label>Medio de pago del cliente</label>
+        <select id="caja-op-medio" style="margin:0">
           <option value="efectivo">Efectivo</option>
           <option value="transferencia">Transferencia</option>
-          <option value="crypto">Crypto/On-chain</option>
+          <option value="crypto">Crypto / On-chain</option>
         </select>
-        <input type="month" id="fx-fil-mes" onchange="renderFx()" style="width:auto;margin:0;font-size:13px" title="Filtrar por mes"/>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fx-fil-mes').value='';document.getElementById('fx-fil-tipo').value='';document.getElementById('fx-fil-medio').value='';renderFx()">✕ Limpiar</button>
-      </div>
-
-      <!-- Lista de operaciones -->
-      <div id="fx-list"></div>
-
-      <!-- CALCULADORA DE COSTO/PROFIT -->
-      <div class="card" style="margin-top:24px;padding:20px">
-        <div style="font-size:15px;font-weight:600;margin-bottom:4px">⚡ Calculadora de operación</div>
-        <div style="font-size:13px;color:var(--t3);margin-bottom:18px">
-          Cliente pide ARS → vos pagás con USDT → calculá cuánto USDT usás y cuál es tu profit
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="form-group">
-            <label>ARS que pedís al cliente (o que le entregás)</label>
-            <input type="number" id="calc-ars-cliente" placeholder="ej: 1415000" min="0" step="1" oninput="calcFxProfit()"/>
-            <div style="font-size:11px;color:var(--t3);margin-top:3px">Los pesos que recibís / entregás en la operación</div>
-          </div>
-          <div class="form-group">
-            <label>USD físicos en la operación</label>
-            <input type="number" id="calc-usd-cliente" placeholder="ej: 1000" min="0" step="0.01" oninput="calcFxProfit()"/>
-            <div style="font-size:11px;color:var(--t3);margin-top:3px">USD que maneja el cliente (define cuánto USDT necesitás)</div>
-          </div>
-          <div class="form-group">
-            <label>Cotización USDT hoy (ARS por USDT)</label>
-            <input type="number" id="calc-cotiz-compra" placeholder="ej: 1490" min="0" step="0.01" oninput="calcFxProfit()"/>
-            <div style="font-size:11px;color:var(--t3);margin-top:3px">Precio al que comprás / está valuado el USDT hoy</div>
-          </div>
-          <div class="form-group">
-            <label>% costo de entrada del USDT</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="number" id="calc-pct-costo" placeholder="ej: 2.5" min="0" step="0.1" oninput="calcFxProfit()" style="flex:1"/>
-              <span style="font-size:14px;color:var(--t3)">%</span>
-            </div>
-            <div style="font-size:11px;color:var(--t3);margin-top:3px">Costo real para conseguir ese USDT (spread de mercado)</div>
-          </div>
-        </div>
-        <div id="calc-resultado" style="background:var(--surface2);border-radius:var(--radius);padding:16px;display:none">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-            <div>
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">ARS que pagás</div>
-              <div style="font-size:18px;font-weight:500;color:var(--red)" id="calc-ars-pago">—</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:2px">Transferís al cliente</div>
-            </div>
-            <div>
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Costo real en ARS</div>
-              <div style="font-size:18px;font-weight:500;color:var(--amber)" id="calc-costo-val">—</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:2px">Comprás USDT + spread</div>
-            </div>
-            <div>
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Profit neto</div>
-              <div style="font-size:18px;font-weight:500;color:var(--green)" id="calc-profit-val">—</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:2px">ARS que te quedán</div>
-            </div>
-            <div>
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Margen real</div>
-              <div style="font-size:18px;font-weight:500;color:var(--blue)" id="calc-margen-val">—</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:2px">% sobre lo pagado</div>
-            </div>
-          </div>
-          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--t3);line-height:1.8" id="calc-detalle"></div>
-        </div>
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px" id="caja-op-campos">
+      <!-- Se genera dinámicamente -->
+    </div>
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;margin-bottom:12px;font-size:13px;color:var(--t3);min-height:40px" id="caja-op-preview"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="form-group" style="flex:1;margin:0">
+        <label>Notas (opcional)</label>
+        <input type="text" id="caja-op-notas" placeholder="Observaciones..." style="margin:0"/>
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="cajaGuardarOp()">Registrar</button>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:600">Historial de operaciones</span>
+      <button class="btn btn-danger btn-xs" onclick="if(confirm('¿Resetear todas las operaciones y saldos?'))cajaReset()">Resetear caja</button>
+    </div>
+    <div id="caja-historial"></div>
+  </div>
+</div>
 
   </div>
 </div>
@@ -2408,6 +2356,7 @@ function svNav(el, paneId){
   else if(paneId==='sv-faltas-prov') renderFaltasProv('sv-faltas-prov-content');
   else if(paneId==='sv-faltas-mun') renderFaltasMun('sv-faltas-mun-content');
   else if(paneId==='sv-estadisticas') renderEstadisticas();
+  else if(paneId==='sv-fx'){ cajaOpChange(); cajaRender(); }
   else if(FIN_PANES.includes(paneId)){
     if(!finLoaded) finInit().then(()=>FIN_RENDER_MAP[paneId]?.());
     else FIN_RENDER_MAP[paneId]?.();
@@ -7977,6 +7926,225 @@ async function renderEstadisticas(){
 }
 </script>
 <script>
+
+// ══════════════════════════════════════════════════════════
+// MÓDULO CAJA DE CAMBIO
+// ══════════════════════════════════════════════════════════
+
+const CAJA_KEY = 'fslegales_caja_v1';
+
+function cajaLoad(){
+  try{ return JSON.parse(localStorage.getItem(CAJA_KEY)) || {ars:0, usd:0, usdt:0, ops:[]}; }
+  catch(e){ return {ars:0, usd:0, usdt:0, ops:[]}; }
+}
+function cajaSave(data){ localStorage.setItem(CAJA_KEY, JSON.stringify(data)); }
+
+function cajaRender(){
+  const d = cajaLoad();
+  const fmtARS  = n => '$' + Math.round(n).toLocaleString('es-AR');
+  const fmtUSD  = n => 'U$S ' + parseFloat(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtUSDT = n => '⬡ ' + parseFloat(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const arsEl = document.getElementById('caja-ars-val');
+  const usdEl = document.getElementById('caja-usd-val');
+  const usdtEl= document.getElementById('caja-usdt-val');
+  if(arsEl)  arsEl.textContent  = fmtARS(d.ars);
+  if(usdEl)  usdEl.textContent  = fmtUSD(d.usd);
+  if(usdtEl) usdtEl.textContent = fmtUSDT(d.usdt);
+
+  // Colores según saldo
+  if(arsEl)  arsEl.style.color = d.ars  >= 0 ? '#6366f1' : 'var(--red)';
+  if(usdEl)  usdEl.style.color = d.usd  >= 0 ? '#22c55e' : 'var(--red)';
+  if(usdtEl) usdtEl.style.color= d.usdt >= 0 ? '#eab308' : 'var(--red)';
+
+  // Historial
+  const hist = document.getElementById('caja-historial');
+  if(!hist) return;
+  if(!d.ops.length){
+    hist.innerHTML = '<div class="empty-state">Sin operaciones registradas.</div>';
+    return;
+  }
+  const OP_LABELS = {
+    usd_ars:  {label:'Doy USD → recibo ARS',   arsSign:'+', usdSign:'-', usdtSign:''},
+    ars_usd:  {label:'Doy ARS → recibo USD',   arsSign:'-', usdSign:'+', usdtSign:''},
+    usdt_usd: {label:'Doy USDT → recibo USD',  arsSign:'',  usdSign:'+', usdtSign:'-'},
+    usd_usdt: {label:'Doy USD → recibo USDT',  arsSign:'',  usdSign:'-', usdtSign:'+'},
+    p2p:      {label:'P2P',                    arsSign:'+', usdSign:'+', usdtSign:'-'},
+  };
+  hist.innerHTML = '<table><thead><tr><th>Fecha</th><th>Operación</th><th>Detalle</th><th style="text-align:right;color:#6366f1">ARS</th><th style="text-align:right;color:#22c55e">USD</th><th style="text-align:right;color:#eab308">USDT</th><th></th></tr></thead><tbody>' +
+    [...d.ops].reverse().map((op,ri) => {
+      const i = d.ops.length - 1 - ri;
+      const meta = OP_LABELS[op.tipo] || {label:op.tipo};
+      const fmtDelta = (v,sign) => {
+        if(!sign || v === 0) return '<span style="color:var(--t3)">—</span>';
+        const color = sign === '+' ? 'var(--green)' : 'var(--red)';
+        return `<span style="color:${color};font-family:'DM Mono',monospace">${sign}${Math.abs(v).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
+      };
+      return `<tr>
+        <td class="monospace" style="font-size:11px;color:var(--t3)">${op.fecha}</td>
+        <td style="font-size:13px">${meta.label}</td>
+        <td style="font-size:12px;color:var(--t3)">${op.detalle}${op.notas?' · '+op.notas:''}</td>
+        <td style="text-align:right">${fmtDelta(op.dArs, meta.arsSign)}</td>
+        <td style="text-align:right">${fmtDelta(op.dUsd, meta.usdSign)}</td>
+        <td style="text-align:right">${fmtDelta(op.dUsdt, meta.usdtSign)}</td>
+        <td><button class="btn btn-danger btn-xs" onclick="cajaEliminarOp(${i})">✕</button></td>
+      </tr>`;
+    }).join('') +
+  '</tbody></table>';
+}
+
+const CAJA_OP_CONFIGS = {
+  usd_ars: {
+    campos: [
+      {id:'caja-c1', label:'Cantidad USD que doy', placeholder:'ej: 1000', unit:'USD'},
+      {id:'caja-c2', label:'Cotización (ARS por USD)', placeholder:'ej: 1450'},
+    ],
+    preview: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      const ars = usd * cot;
+      return usd && cot ? `📤 Sale: <strong>${usd} USD</strong> · 📥 Entra: <strong>$${Math.round(ars).toLocaleString('es-AR')} ARS</strong>` : '';
+    },
+    deltas: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      return {dArs: usd*cot, dUsd: -usd, dUsdt: 0, detalle: `${usd} USD × $${cot}`};
+    }
+  },
+  ars_usd: {
+    campos: [
+      {id:'caja-c1', label:'Cantidad USD que recibo', placeholder:'ej: 1000', unit:'USD'},
+      {id:'caja-c2', label:'Cotización (ARS por USD)', placeholder:'ej: 1450'},
+    ],
+    preview: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      const ars = usd * cot;
+      return usd && cot ? `📤 Sale: <strong>$${Math.round(ars).toLocaleString('es-AR')} ARS</strong> · 📥 Entra: <strong>${usd} USD</strong>` : '';
+    },
+    deltas: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      return {dArs: -(usd*cot), dUsd: usd, dUsdt: 0, detalle: `${usd} USD × $${cot}`};
+    }
+  },
+  usdt_usd: {
+    campos: [
+      {id:'caja-c1', label:'Cantidad USDT que doy', placeholder:'ej: 950', unit:'USDT'},
+      {id:'caja-c2', label:'Cotización (USD por USDT)', placeholder:'ej: 0.98'},
+    ],
+    preview: (v) => {
+      const usdt = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      const usd = usdt * cot;
+      return usdt && cot ? `📤 Sale: <strong>⬡ ${usdt} USDT</strong> · 📥 Entra: <strong>${usd.toFixed(2)} USD</strong>` : '';
+    },
+    deltas: (v) => {
+      const usdt = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      return {dArs: 0, dUsd: usdt*cot, dUsdt: -usdt, detalle: `⬡ ${usdt} USDT × ${cot} USD`};
+    }
+  },
+  usd_usdt: {
+    campos: [
+      {id:'caja-c1', label:'Cantidad USD que doy', placeholder:'ej: 1000', unit:'USD'},
+      {id:'caja-c2', label:'Cotización (USDT por USD)', placeholder:'ej: 0.97'},
+    ],
+    preview: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      const usdt = usd * cot;
+      return usd && cot ? `📤 Sale: <strong>${usd} USD</strong> · 📥 Entra: <strong>⬡ ${usdt.toFixed(2)} USDT</strong>` : '';
+    },
+    deltas: (v) => {
+      const usd = parseFloat(v[0])||0, cot = parseFloat(v[1])||0;
+      return {dArs: 0, dUsd: -usd, dUsdt: usd*cot, detalle: `${usd} USD × ${cot} USDT`};
+    }
+  },
+  p2p: {
+    campos: [
+      {id:'caja-c1', label:'USD que recibo del cliente', placeholder:'ej: 1000', unit:'USD'},
+      {id:'caja-c2', label:'ARS que paga el p2p al cliente', placeholder:'ej: 1415000'},
+      {id:'caja-c3', label:'USDT que entrego al p2p', placeholder:'ej: 950', unit:'USDT'},
+    ],
+    preview: (v) => {
+      const usd = parseFloat(v[0])||0, ars = parseFloat(v[1])||0, usdt = parseFloat(v[2])||0;
+      if(!usd) return '';
+      const profit = usd - usdt;
+      return `📥 Entra: <strong>${usd} USD</strong> + <strong>$${Math.round(ars).toLocaleString('es-AR')} ARS</strong> · 📤 Sale: <strong>⬡ ${usdt} USDT</strong>` +
+        (profit ? ` · Profit: <strong style="color:${profit>=0?'var(--green)':'var(--red)'}">${profit.toFixed(2)} USD</strong>` : '');
+    },
+    deltas: (v) => {
+      const usd = parseFloat(v[0])||0, ars = parseFloat(v[1])||0, usdt = parseFloat(v[2])||0;
+      return {dArs: ars, dUsd: usd, dUsdt: -usdt, detalle: `${usd} USD · $${Math.round(ars).toLocaleString('es-AR')} ARS · ⬡ ${usdt} USDT`};
+    }
+  }
+};
+
+function cajaOpChange(){
+  const tipo = document.getElementById('caja-op-tipo')?.value || 'usd_ars';
+  const cfg = CAJA_OP_CONFIGS[tipo];
+  if(!cfg) return;
+  const campos = document.getElementById('caja-op-campos');
+  if(!campos) return;
+  campos.innerHTML = cfg.campos.map(c =>
+    `<div class="form-group" style="margin:0">
+      <label>${c.label}</label>
+      <input type="number" id="${c.id}" placeholder="${c.placeholder}" min="0" step="0.01"
+        oninput="cajaOpPreview()" style="margin:0"/>
+    </div>`
+  ).join('');
+  cajaOpPreview();
+}
+
+function cajaOpPreview(){
+  const tipo = document.getElementById('caja-op-tipo')?.value || 'usd_ars';
+  const cfg = CAJA_OP_CONFIGS[tipo];
+  if(!cfg) return;
+  const vals = cfg.campos.map(c => document.getElementById(c.id)?.value || '0');
+  const preview = document.getElementById('caja-op-preview');
+  if(preview) preview.innerHTML = cfg.preview(vals) || '<span style="color:var(--t3)">Completá los campos para ver el resumen</span>';
+}
+
+function cajaGuardarOp(){
+  const tipo = document.getElementById('caja-op-tipo')?.value || 'usd_ars';
+  const cfg = CAJA_OP_CONFIGS[tipo];
+  if(!cfg) return;
+  const vals = cfg.campos.map(c => document.getElementById(c.id)?.value || '0');
+  const notas = document.getElementById('caja-op-notas')?.value.trim() || '';
+  const medio = document.getElementById('caja-op-medio')?.value || 'efectivo';
+  const d = cfg.deltas(vals);
+  if(!d.dUsd && !d.dArs && !d.dUsdt){ alert('Ingresá los valores de la operación.'); return; }
+
+  const data = cajaLoad();
+  data.ars  += d.dArs;
+  data.usd  += d.dUsd;
+  data.usdt += d.dUsdt;
+  const hoy = new Date();
+  const fecha = `${String(hoy.getDate()).padStart(2,'0')}/${String(hoy.getMonth()+1).padStart(2,'0')}/${hoy.getFullYear()} ${String(hoy.getHours()).padStart(2,'0')}:${String(hoy.getMinutes()).padStart(2,'0')}`;
+  data.ops.push({tipo, fecha, detalle: d.detalle, notas, medio, dArs:d.dArs, dUsd:d.dUsd, dUsdt:d.dUsdt});
+  cajaSave(data);
+
+  // Limpiar campos
+  cfg.campos.forEach(c=>{ const el=document.getElementById(c.id); if(el) el.value=''; });
+  const notasEl = document.getElementById('caja-op-notas'); if(notasEl) notasEl.value='';
+  const prev = document.getElementById('caja-op-preview'); if(prev) prev.innerHTML='';
+
+  cajaRender();
+}
+
+function cajaEliminarOp(i){
+  if(!confirm('¿Eliminar esta operación? Se recalcularán los saldos.')) return;
+  const data = cajaLoad();
+  const op = data.ops[i];
+  if(!op) return;
+  // Revertir deltas
+  data.ars  -= op.dArs;
+  data.usd  -= op.dUsd;
+  data.usdt -= op.dUsdt;
+  data.ops.splice(i, 1);
+  cajaSave(data);
+  cajaRender();
+}
+
+function cajaReset(){
+  cajaSave({ars:0, usd:0, usdt:0, ops:[]});
+  cajaRender();
+}
+
 // ══════════════════════════════════════════════════════════
 // MÓDULO MERCADO — Cotizaciones en tiempo real (dolarapi.com)
 // ══════════════════════════════════════════════════════════
