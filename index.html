@@ -6480,20 +6480,23 @@ if(typeof supabase==='undefined'){
 
 // FALTAS PROVINCIALES
 function renderFaltasProv(containerId){
-  // HTML ya esta en el DOM estatico - solo conectar eventos
-  const btn = document.getElementById('fp-auto-btn') || document.getElementById('fp-e-auto-btn');
-  if(btn && !btn._fpInit) {
-    btn._fpInit = true;
+  // Detectar prefijo segun el contenedor
+  const esSupervisor = containerId === 'sv-faltas-prov-content';
+  const pfx = esSupervisor ? 'fp-' : 'fp-e-';
+
+  const btn = document.getElementById(pfx+'auto-btn');
+  if(btn) {
+    btn._fpInit = false; // resetear siempre para reconectar
     btn.onclick = fpAutoCompletar;
-    // Conectar inputs de archivo
-    const actaInput = document.getElementById('fp-auto-acta-input') || document.getElementById('fp-e-auto-acta-input');
-    const dniInput  = document.getElementById('fp-auto-dni-input')  || document.getElementById('fp-e-auto-dni-input');
-    if(actaInput) actaInput.onchange = function(){ fpAutoCargarArchivo('acta', this); };
-    if(dniInput)  dniInput.onchange  = function(){ fpAutoCargarArchivo('dni',  this); };
-    // Boton generar
-    const genBtn = document.getElementById('fp-generar-btn') || document.getElementById('fp-e-generar-btn');
-    if(genBtn) genBtn.onclick = generarFaltaPDF;
   }
+  const actaInput = document.getElementById(pfx+'auto-acta-input');
+  if(actaInput) actaInput.onchange = function(){ fpAutoCargarArchivo('acta', this); };
+  const dniInput = document.getElementById(pfx+'auto-dni-input');
+  if(dniInput)  dniInput.onchange  = function(){ fpAutoCargarArchivo('dni',  this); };
+  const genBtn = document.getElementById(pfx.replace('-','').replace('fpe','fp-e-')+'generar-btn') || document.getElementById('fp-generar-btn') || document.getElementById('fp-e-generar-btn');
+  if(genBtn) genBtn.onclick = generarFaltaPDF;
+  // Guardar el prefijo activo para que fpAutoCompletar sepa cual usar
+  window._fpActivePfx = pfx;
 }
 
 
@@ -6523,8 +6526,8 @@ function fpAutoCargarArchivo(tipo, input){
 }
 
 async function fpAutoCompletar(){
-  // Detectar cual panel esta activo (supervisor o empleado)
-  const pfx = document.getElementById('fp-e-auto-btn') && document.getElementById('fp-e-auto-btn').offsetParent ? 'fp-e-' : 'fp-';
+  // Usar el prefijo guardado por renderFaltasProv
+  const pfx = window._fpActivePfx || 'fp-';
   const btn     = document.getElementById(pfx+'auto-btn');
   const btnText = document.getElementById(pfx+'auto-btn-text');
   const btnIcon = document.getElementById(pfx+'auto-btn-icon');
@@ -6573,11 +6576,12 @@ async function fpAutoCompletar(){
     const campos = JSON.parse(jsonStr);
 
     const set = (id, val) => { const el = document.querySelector('#'+id); if(el && val) el.value = val; };
-    // Datos personales - detectar prefijo activo
+    // Datos personales - usar prefijo correcto segun panel
     const dp = pfx === 'fp-e-' ? 'fp-e-' : 'fp-d-';
     set(dp+'nombre',    campos.nombre);
     set(dp+'dni',       campos.dni);
     set(dp+'domicilio', campos.domicilio);
+    set(dp+'caracter',  campos.caracter||'titular registral del vehiculo');
     // Datos de la infraccion en acta-0
     set('fp-acta-0-dominio',   campos.dominio);
     set('fp-acta-0-vehiculo',  campos.vehiculo);
