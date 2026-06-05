@@ -746,6 +746,17 @@ tr.clickable{cursor:pointer}
     <div id="fp-actas-container" style="margin-top:16px"></div>
     <button onclick="fpAgregarActa()" style="width:100%;margin-top:8px;background:transparent;border:2px dashed var(--border);border-radius:8px;padding:10px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">&#10010; Agregar otra infraccion</button>
 
+    <!-- PRORROGA Y OTROS -->
+    <div class="card" style="padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px">Solicitudes adicionales</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:12px;cursor:pointer" onclick="fpCbToggle('fp-d-prorroga')">
+          <input type="checkbox" id="fp-d-prorroga" style="width:17px;height:17px;accent-color:var(--accent);margin-top:3px;flex-shrink:0;pointer-events:none">
+          <div style="user-select:none"><div style="font-size:13px;font-weight:600;color:var(--text1)">Prórroga de jurisdicción</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Solicitar el juzgado más cercano al domicilio</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- EXTRA -->
     <div class="card" style="padding:20px;margin-top:16px">
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Argumentos adicionales (opcional)</div>
