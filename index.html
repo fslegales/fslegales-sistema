@@ -6493,7 +6493,7 @@ function renderFaltasProv(containerId){
   if(actaInput) actaInput.onchange = function(){ fpAutoCargarArchivo('acta', this); };
   const dniInput = document.getElementById(pfx+'auto-dni-input');
   if(dniInput)  dniInput.onchange  = function(){ fpAutoCargarArchivo('dni',  this); };
-  const genBtn = document.getElementById(pfx.replace('-','').replace('fpe','fp-e-')+'generar-btn') || document.getElementById('fp-generar-btn') || document.getElementById('fp-e-generar-btn');
+  const genBtn = document.getElementById(pfx+'generar-btn');
   if(genBtn) genBtn.onclick = generarFaltaPDF;
   // Guardar el prefijo activo para que fpAutoCompletar sepa cual usar
   window._fpActivePfx = pfx;
