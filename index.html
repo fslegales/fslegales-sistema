@@ -6479,23 +6479,23 @@ if(typeof supabase==='undefined'){
 
 // FALTAS PROVINCIALES
 function renderFaltasProv(containerId){
-  // Detectar prefijo segun el contenedor
-  const esSupervisor = containerId === 'sv-faltas-prov-content';
-  const pfx = esSupervisor ? 'fp-' : 'fp-e-';
+  // Siempre usamos el panel del supervisor (todos los usuarios son iguales)
+  const pfx = 'fp-';
+  window._fpActivePfx = pfx;
 
   const btn = document.getElementById(pfx+'auto-btn');
-  if(btn) {
-    btn._fpInit = false; // resetear siempre para reconectar
-    btn.onclick = fpAutoCompletar;
-  }
+  if(btn) btn.onclick = fpAutoCompletar;
+
   const actaInput = document.getElementById(pfx+'auto-acta-input');
   if(actaInput) actaInput.onchange = function(){ fpAutoCargarArchivo('acta', this); };
   const dniInput = document.getElementById(pfx+'auto-dni-input');
-  if(dniInput)  dniInput.onchange  = function(){ fpAutoCargarArchivo('dni',  this); };
+  if(dniInput) dniInput.onchange = function(){ fpAutoCargarArchivo('dni', this); };
   const genBtn = document.getElementById(pfx+'generar-btn');
   if(genBtn) genBtn.onclick = generarFaltaPDF;
-  // Guardar el prefijo activo para que fpAutoCompletar sepa cual usar
-  window._fpActivePfx = pfx;
+
+  // Asegurar que el container de actas tenga al menos una acta inicializada
+  const cont = document.getElementById('fp-actas-container');
+  if(cont && cont.children.length === 0) fpAgregarActa();
 }
 
 
