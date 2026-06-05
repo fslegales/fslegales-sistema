@@ -2647,8 +2647,8 @@ async function loadSupervisor(){
   // Cargar datos (el pane ya es visible con el loading state)
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
   populateEmpSelects(); populateFilters(); populateClienteSelects();
-  // Re-asegurar que sv-tareas sigue activo tras la carga de datos
-  document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
+  // Activar sv-tareas - limpiar absolutamente todos los panes del documento
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById('sv-tareas').classList.add('active');
   renderSvTareas();
   await autoArchivar();
