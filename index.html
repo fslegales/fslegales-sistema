@@ -1,5 +1,3 @@
-Fix 1: OK
-Fix 2 old found: False
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6525,10 +6523,12 @@ function fpAutoCargarArchivo(tipo, input){
 }
 
 async function fpAutoCompletar(){
-  const btn     = document.getElementById('fp-auto-btn');
-  const btnText = document.getElementById('fp-auto-btn-text');
-  const btnIcon = document.getElementById('fp-auto-btn-icon');
-  const status  = document.getElementById('fp-auto-status');
+  // Detectar cual panel esta activo (supervisor o empleado)
+  const pfx = document.getElementById('fp-e-auto-btn') && document.getElementById('fp-e-auto-btn').offsetParent ? 'fp-e-' : 'fp-';
+  const btn     = document.getElementById(pfx+'auto-btn');
+  const btnText = document.getElementById(pfx+'auto-btn-text');
+  const btnIcon = document.getElementById(pfx+'auto-btn-icon');
+  const status  = document.getElementById(pfx+'auto-status');
 
   if(!fpAutoArchivos.acta && !fpAutoArchivos.dni){
     status.style.display = 'block';
@@ -6573,10 +6573,11 @@ async function fpAutoCompletar(){
     const campos = JSON.parse(jsonStr);
 
     const set = (id, val) => { const el = document.querySelector('#'+id); if(el && val) el.value = val; };
-    // Datos personales
-    set('fp-d-nombre',    campos.nombre);
-    set('fp-d-dni',       campos.dni);
-    set('fp-d-domicilio', campos.domicilio);
+    // Datos personales - detectar prefijo activo
+    const dp = pfx === 'fp-e-' ? 'fp-e-' : 'fp-d-';
+    set(dp+'nombre',    campos.nombre);
+    set(dp+'dni',       campos.dni);
+    set(dp+'domicilio', campos.domicilio);
     // Datos de la infraccion en acta-0
     set('fp-acta-0-dominio',   campos.dominio);
     set('fp-acta-0-vehiculo',  campos.vehiculo);
