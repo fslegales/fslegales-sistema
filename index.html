@@ -1689,6 +1689,14 @@ tr.clickable{cursor:pointer}
       <div class="sidebar-item" onclick="empNav(this,'emp-fin-resultados')">
         <span class="sidebar-icon">📉</span><span class="sidebar-label">Estado result.</span>
       </div>
+      <hr class="sidebar-divider"/>
+      <div class="sidebar-section">FX / Cripto</div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-mercado');loadMercado()">
+        <span class="sidebar-icon">🌐</span><span class="sidebar-label">Mercado</span>
+      </div>
+      <div class="sidebar-item" onclick="empNav(this,'emp-fx')">
+        <span class="sidebar-icon">💱</span><span class="sidebar-label">Cambio USD · USDT</span>
+      </div>
     </nav>
     <!-- CONTENT EMPLEADO -->
       <div id="emp-carta-doc" class="tab-pane">
@@ -1953,6 +1961,8 @@ tr.clickable{cursor:pointer}
       <div id="emp-fin-recurrentes" class="tab-pane"></div>
       <div id="emp-fin-gastos" class="tab-pane"></div>
       <div id="emp-fin-resultados" class="tab-pane"></div>
+      <div id="emp-mercado" class="tab-pane"></div>
+      <div id="emp-fx" class="tab-pane"></div>
     </div>
   </div>
 </div>
@@ -2371,7 +2381,7 @@ function empNav(el, paneId){
   document.querySelectorAll('#app-empleado .tab-pane').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById(paneId).classList.add('active');
-  const _finPanes = ['emp-fin-resumen','emp-fin-honorarios','emp-fin-cuentas','emp-fin-recurrentes','emp-fin-gastos','emp-fin-resultados'];
+  const _finPanes = ['emp-fin-resumen','emp-fin-honorarios','emp-fin-cuentas','emp-fin-recurrentes','emp-fin-gastos','emp-fin-resultados','emp-mercado','emp-fx'];
   // Devolver panes de finanzas al supervisor si no estamos navegando a finanzas
   if(!_finPanes.includes(paneId)){
     _finPanes.forEach(fp=>{
@@ -2415,7 +2425,9 @@ function empNav(el, paneId){
         'emp-fin-cuentas': renderCuentaCorriente,
         'emp-fin-recurrentes': renderRecurrentes,
         'emp-fin-gastos': renderGastos,
-        'emp-fin-resultados': renderEstadoResultados
+        'emp-fin-resultados': renderEstadoResultados,
+        'emp-mercado': ()=>{ loadMercado(); },
+        'emp-fx': ()=>{ loadFx().then(()=>renderFx()); }
       }[paneId];
       if(fn) fn();
     });
