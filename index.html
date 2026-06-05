@@ -1163,24 +1163,6 @@ tr.clickable{cursor:pointer}
             <option value="cripto">Cripto</option>
           </select>
         </div>
-      <!-- Conversor rápido -->
-      <div class="card" style="max-width:500px">
-        <div style="font-size:14px;font-weight:500;margin-bottom:14px">⚡ Conversor rápido</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="conv-monto" placeholder="Monto" style="flex:1;min-width:100px;margin:0" oninput="calcConversor()"/>
-          <select id="conv-moneda" onchange="calcConversor()" style="width:auto;margin:0;font-size:14px">
-            <option value="ars_a_usd">ARS → USD</option>
-            <option value="usd_a_ars">USD → ARS</option>
-          </select>
-          <select id="conv-tipo" onchange="calcConversor()" style="width:auto;margin:0;font-size:14px">
-            <option value="blue">Blue</option>
-            <option value="oficial">Oficial</option>
-            <option value="mep">MEP</option>
-            <option value="ccl">CCL</option>
-            <option value="mayorista">Mayorista</option>
-            <option value="cripto">Cripto</option>
-          </select>
-        </div>
         <div id="conv-resultado" style="margin-top:14px;font-size:22px;font-weight:500;color:var(--blue);min-height:32px"></div>
         <div id="conv-detalle" style="font-size:12px;color:var(--t3);margin-top:4px"></div>
       </div>
