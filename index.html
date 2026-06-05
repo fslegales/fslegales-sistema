@@ -592,6 +592,9 @@ tr.clickable{cursor:pointer}
       <div class="sidebar-item" onclick="svNav(this,'sv-carta-doc')">
         <span class="sidebar-icon">📨</span><span class="sidebar-label">Carta Documento</span>
       </div>
+      <div class="sidebar-item" onclick="svNav(this,'sv-contratos')">
+        <span class="sidebar-icon">📝</span><span class="sidebar-label">Contratos IA</span>
+      </div>
       <hr class="sidebar-divider"/>
       <div class="sidebar-section">Faltas</div>
       <div class="sidebar-item" onclick="svNav(this,'sv-faltas-prov')">
@@ -686,6 +689,11 @@ tr.clickable{cursor:pointer}
       <!-- CARTA DOCUMENTO -->
       <div id="sv-carta-doc" class="tab-pane">
         <div id="sv-carta-doc-content"></div>
+      </div>
+
+      <!-- CONTRATOS IA -->
+      <div id="sv-contratos" class="tab-pane">
+        <div id="sv-contratos-content"></div>
       </div>
       <div id="sv-faltas-prov" class="tab-pane">
         <div id="sv-faltas-prov-content">
@@ -2367,6 +2375,7 @@ function svNav(el, paneId){
   else if(paneId==='sv-carga') renderCargaLaboral();
   else if(paneId==='sv-dashboard') renderDashboard();
   else if(paneId==='sv-carta-doc') renderCartaDoc('sv-carta-doc-content');
+  else if(paneId==='sv-contratos') renderContratos();
   else if(paneId==='sv-faltas-prov') renderFaltasProv('sv-faltas-prov-content');
   else if(paneId==='sv-faltas-mun') renderFaltasMun('sv-faltas-mun-content');
   else if(paneId==='sv-estadisticas') renderEstadisticas();
@@ -8799,6 +8808,286 @@ document.addEventListener('change', function(e){
 </script>
 
 <script>
+// ══════════════════════════════════════════════════════════
+// MÓDULO CONTRATOS IA
+// ══════════════════════════════════════════════════════════
+
+const CONTRATO_TIPOS = {
+  compraventa: {
+    label: 'Compraventa de inmueble',
+    icon: '🏠',
+    campos: [
+      { id:'cv-vendedor-nombre', label:'Vendedor — Nombre completo', placeholder:'GARCÍA, Juan Carlos' },
+      { id:'cv-vendedor-dni',    label:'Vendedor — DNI', placeholder:'20.123.456' },
+      { id:'cv-vendedor-dom',    label:'Vendedor — Domicilio', placeholder:'Av. Colón 123, Bahía Blanca' },
+      { id:'cv-comprador-nombre',label:'Comprador — Nombre completo', placeholder:'LÓPEZ, María Elena' },
+      { id:'cv-comprador-dni',   label:'Comprador — DNI', placeholder:'25.456.789' },
+      { id:'cv-comprador-dom',   label:'Comprador — Domicilio', placeholder:'Mitre 456, Bahía Blanca' },
+      { id:'cv-inmueble',        label:'Descripción del inmueble', placeholder:'Casa ubicada en calle Sarmiento 789, Bahía Blanca, Prov. Buenos Aires. Matrícula 12345.' },
+      { id:'cv-precio',          label:'Precio de venta', placeholder:'$ 50.000.000' },
+      { id:'cv-forma-pago',      label:'Forma de pago', placeholder:'Al contado, en el acto de firma.' },
+      { id:'cv-entrega',         label:'Fecha / condición de entrega', placeholder:'Inmediata a la firma.' },
+      { id:'cv-contexto',        label:'Observaciones adicionales (opcional)', placeholder:'Libre de deudas, gravámenes e inhibiciones...' },
+    ]
+  },
+  compraventa_vehiculo: {
+    label: 'Compraventa de vehículo',
+    icon: '🚗',
+    campos: [
+      { id:'cvv-vendedor-nombre', label:'Vendedor — Nombre completo', placeholder:'RODRÍGUEZ, Carlos Alberto' },
+      { id:'cvv-vendedor-dni',    label:'Vendedor — DNI', placeholder:'18.234.567' },
+      { id:'cvv-vendedor-dom',    label:'Vendedor — Domicilio', placeholder:'Belgrano 321, Bahía Blanca' },
+      { id:'cvv-comprador-nombre',label:'Comprador — Nombre completo', placeholder:'FERNÁNDEZ, Ana Paula' },
+      { id:'cvv-comprador-dni',   label:'Comprador — DNI', placeholder:'30.567.890' },
+      { id:'cvv-comprador-dom',   label:'Comprador — Domicilio', placeholder:'San Martín 654, Bahía Blanca' },
+      { id:'cvv-vehiculo',        label:'Vehículo (marca, modelo, año)', placeholder:'Toyota Corolla 2020' },
+      { id:'cvv-dominio',         label:'Dominio / Patente', placeholder:'AB 123 CD' },
+      { id:'cvv-motor',           label:'N° de motor', placeholder:'1NZ-FE-1234567' },
+      { id:'cvv-chasis',          label:'N° de chasis / VIN', placeholder:'9BRBLWHEXG0123456' },
+      { id:'cvv-precio',          label:'Precio de venta', placeholder:'$ 15.000.000' },
+      { id:'cvv-forma-pago',      label:'Forma de pago', placeholder:'Al contado, en efectivo.' },
+      { id:'cvv-km',              label:'Kilometraje actual', placeholder:'85.000 km' },
+      { id:'cvv-contexto',        label:'Observaciones adicionales (opcional)', placeholder:'Vehículo en buen estado, sin deudas de patente ni infracciones...' },
+    ]
+  },
+  locacion: {
+    label: 'Contrato de locación',
+    icon: '🏢',
+    campos: [
+      { id:'loc-locador-nombre',  label:'Locador — Nombre completo', placeholder:'MARTÍNEZ, Roberto Luis' },
+      { id:'loc-locador-dni',     label:'Locador — DNI', placeholder:'15.678.901' },
+      { id:'loc-locador-dom',     label:'Locador — Domicilio real', placeholder:'Rivadavia 111, Bahía Blanca' },
+      { id:'loc-locatario-nombre',label:'Locatario — Nombre completo', placeholder:'SÁNCHEZ, Laura Beatriz' },
+      { id:'loc-locatario-dni',   label:'Locatario — DNI', placeholder:'35.789.012' },
+      { id:'loc-locatario-dom',   label:'Locatario — Domicilio real', placeholder:'Zelarrayán 222, Bahía Blanca' },
+      { id:'loc-inmueble',        label:'Inmueble objeto de la locación', placeholder:'Departamento 3°B, edificio ubicado en Av. Alem 333, Bahía Blanca.' },
+      { id:'loc-destino',         label:'Destino del inmueble', placeholder:'Habitacional / Comercial / etc.' },
+      { id:'loc-plazo',           label:'Plazo del contrato', placeholder:'2 años desde el 01/07/2026' },
+      { id:'loc-canon',           label:'Canon locativo inicial', placeholder:'$ 200.000 mensuales' },
+      { id:'loc-actualizacion',   label:'Cláusula de actualización', placeholder:'Actualización trimestral por índice ICL del BCRA.' },
+      { id:'loc-deposito',        label:'Depósito en garantía', placeholder:'Equivalente a 1 mes de alquiler.' },
+      { id:'loc-contexto',        label:'Observaciones adicionales (opcional)', placeholder:'Garante: ...' },
+    ]
+  },
+  servicios: {
+    label: 'Prestación de servicios',
+    icon: '💼',
+    campos: [
+      { id:'srv-prestador-nombre',label:'Prestador — Nombre / Razón social', placeholder:'TECH SOLUTIONS S.R.L.' },
+      { id:'srv-prestador-cuit',  label:'Prestador — CUIT/DNI', placeholder:'30-71234567-8' },
+      { id:'srv-prestador-dom',   label:'Prestador — Domicilio', placeholder:'Drago 444, Bahía Blanca' },
+      { id:'srv-cliente-nombre',  label:'Cliente — Nombre / Razón social', placeholder:'EMPRESA ABC S.A.' },
+      { id:'srv-cliente-cuit',    label:'Cliente — CUIT/DNI', placeholder:'30-98765432-1' },
+      { id:'srv-cliente-dom',     label:'Cliente — Domicilio', placeholder:'O\'Higgins 555, Bahía Blanca' },
+      { id:'srv-objeto',          label:'Objeto / Descripción del servicio', placeholder:'Desarrollo de sistema de gestión web...' },
+      { id:'srv-precio',          label:'Honorarios / Precio', placeholder:'$ 500.000 mensuales' },
+      { id:'srv-plazo',           label:'Plazo / Duración', placeholder:'6 meses desde la firma' },
+      { id:'srv-forma-pago',      label:'Forma de pago', placeholder:'Transferencia bancaria los primeros 5 días de cada mes.' },
+      { id:'srv-contexto',        label:'Observaciones adicionales (opcional)', placeholder:'Confidencialidad, propiedad intelectual...' },
+    ]
+  },
+  mutuo: {
+    label: 'Mutuo oneroso',
+    icon: '💰',
+    campos: [
+      { id:'mut-mutuante-nombre', label:'Mutuante (da el dinero) — Nombre', placeholder:'PÉREZ, Diego Hernán' },
+      { id:'mut-mutuante-dni',    label:'Mutuante — DNI', placeholder:'22.345.678' },
+      { id:'mut-mutuante-dom',    label:'Mutuante — Domicilio', placeholder:'Moreno 777, Bahía Blanca' },
+      { id:'mut-mutuario-nombre', label:'Mutuario (recibe el dinero) — Nombre', placeholder:'GÓMEZ, Silvia Verónica' },
+      { id:'mut-mutuario-dni',    label:'Mutuario — DNI', placeholder:'28.456.789' },
+      { id:'mut-mutuario-dom',    label:'Mutuario — Domicilio', placeholder:'Chiclana 888, Bahía Blanca' },
+      { id:'mut-capital',         label:'Capital prestado', placeholder:'$ 5.000.000' },
+      { id:'mut-interes',         label:'Tasa de interés', placeholder:'3% mensual sobre saldo' },
+      { id:'mut-plazo',           label:'Plazo de devolución', placeholder:'12 cuotas mensuales de $ 500.000' },
+      { id:'mut-garantia',        label:'Garantía (si aplica)', placeholder:'Pagaré a la vista / Hipoteca / Sin garantía' },
+      { id:'mut-destino',         label:'Destino del préstamo', placeholder:'Capital de trabajo / uso personal' },
+      { id:'mut-contexto',        label:'Observaciones adicionales (opcional)', placeholder:'Mora automática, intereses punitorios...' },
+    ]
+  },
+};
+
+function renderContratos(){
+  const cont = document.getElementById('sv-contratos-content');
+  if(!cont) return;
+
+  const tipoActual = window._contratoTipoActual || 'compraventa';
+  const cfg = CONTRATO_TIPOS[tipoActual];
+
+  cont.innerHTML = `
+    <div style="font-size:20px;font-weight:500;margin-bottom:4px">Contratos IA</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Redacción automática con inteligencia artificial · lenguaje jurídico</div>
+
+    <!-- Selector de tipo -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+      ${Object.entries(CONTRATO_TIPOS).map(([key, t]) => `
+        <div onclick="contratoSetTipo('${key}')" style="
+          padding:10px 16px;border-radius:var(--radius-lg);cursor:pointer;
+          border:1px solid ${key===tipoActual?'var(--blue)':'var(--border)'};
+          background:${key===tipoActual?'var(--blue-bg)':'var(--surface)'};
+          color:${key===tipoActual?'var(--blue)':'var(--text2)'};
+          font-size:13px;font-weight:${key===tipoActual?'600':'400'};
+          transition:all .15s;display:flex;align-items:center;gap:8px
+        ">
+          <span>${t.icon}</span><span>${t.label}</span>
+        </div>`).join('')}
+    </div>
+
+    <!-- Formulario -->
+    <div class="card" style="padding:24px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px">${cfg.icon} ${cfg.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="contrato-campos">
+        ${cfg.campos.map(c => `
+          <div class="form-group" style="margin:0;${c.id.includes('inmueble')||c.id.includes('objeto')||c.id.includes('contexto')?'grid-column:1/-1':''}">
+            <label>${c.label}</label>
+            ${c.id.includes('contexto')||c.id.includes('objeto')||c.id.includes('inmueble')
+              ? `<textarea id="${c.id}" placeholder="${c.placeholder}" style="min-height:70px;margin:0"></textarea>`
+              : `<input type="text" id="${c.id}" placeholder="${c.placeholder}" style="margin:0"/>`
+            }
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button class="btn btn-ghost" onclick="contratoClearForm()">Limpiar</button>
+        <button class="btn btn-primary" id="contrato-generar-btn" onclick="contratoGenerar()">✨ Generar contrato</button>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="contrato-resultado" style="display:none">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;font-weight:600">Contrato generado</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="contratoCopiar()">📋 Copiar</button>
+            <button class="btn btn-dark btn-sm" onclick="contratoDescargar()">⬇ Descargar .txt</button>
+          </div>
+        </div>
+        <div id="contrato-texto" style="padding:24px;white-space:pre-wrap;font-family:'Times New Roman',Times,serif;font-size:14px;line-height:1.8;color:var(--text);max-height:600px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div id="contrato-loading" style="display:none;text-align:center;padding:40px;color:var(--text3)">
+      <div style="font-size:24px;margin-bottom:12px">⚡</div>
+      <div style="font-size:14px">Redactando contrato...</div>
+      <div style="font-size:12px;margin-top:4px;color:var(--text3)">La IA está escribiendo el documento completo</div>
+    </div>
+  `;
+}
+
+function contratoSetTipo(tipo){
+  window._contratoTipoActual = tipo;
+  renderContratos();
+}
+
+function contratoClearForm(){
+  const tipoActual = window._contratoTipoActual || 'compraventa';
+  const cfg = CONTRATO_TIPOS[tipoActual];
+  cfg.campos.forEach(c => {
+    const el = document.getElementById(c.id);
+    if(el) el.value = '';
+  });
+  document.getElementById('contrato-resultado').style.display = 'none';
+}
+
+async function contratoGenerar(){
+  const tipoActual = window._contratoTipoActual || 'compraventa';
+  const cfg = CONTRATO_TIPOS[tipoActual];
+
+  // Recolectar datos
+  const datos = {};
+  cfg.campos.forEach(c => {
+    const el = document.getElementById(c.id);
+    datos[c.label] = el?.value?.trim() || '';
+  });
+
+  // Verificar que haya al menos algunos datos
+  const rellenos = Object.values(datos).filter(v => v).length;
+  if(rellenos < 3){
+    alert('Completá al menos los datos principales antes de generar.');
+    return;
+  }
+
+  const btn = document.getElementById('contrato-generar-btn');
+  const loading = document.getElementById('contrato-loading');
+  const resultado = document.getElementById('contrato-resultado');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+  loading.style.display = 'block';
+  resultado.style.display = 'none';
+
+  const ciudad = 'Bahía Blanca';
+  const fecha = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const datosTexto = Object.entries(datos)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `- ${k}: ${v}`)
+    .join('\n');
+
+  const prompt = `Sos un abogado argentino especialista en derecho civil y comercial. 
+Redactá un contrato de ${cfg.label} completo, formal y jurídicamente válido conforme al Código Civil y Comercial de la Nación Argentina (Ley 26.994).
+
+Datos del contrato:
+${datosTexto}
+
+Ciudad y fecha: ${ciudad}, ${fecha}
+
+Instrucciones:
+- Usá lenguaje jurídico formal y preciso
+- Incluí todas las cláusulas necesarias para que sea un contrato completo y válido
+- Numerá las cláusulas
+- Incluí sección de PARTES, OBJETO, PRECIO/CONTRAPRESTACIÓN, PLAZO, OBLIGACIONES DE LAS PARTES, INCUMPLIMIENTO, JURISDICCIÓN y FIRMA
+- Al final dejá espacio para firmas de ambas partes con nombre, aclaración y fecha
+- No agregues comentarios ni explicaciones, solo el texto del contrato listo para usar
+- Incluí encabezado con tipo de contrato, ciudad y fecha`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const texto = data.content?.map(b => b.text || '').join('') || '';
+
+    if(!texto){ throw new Error('Sin respuesta'); }
+
+    document.getElementById('contrato-texto').textContent = texto;
+    resultado.style.display = 'block';
+    resultado.scrollIntoView({behavior:'smooth'});
+
+  } catch(e){
+    alert('Error al generar el contrato: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ Generar contrato';
+    loading.style.display = 'none';
+  }
+}
+
+function contratoCopiar(){
+  const texto = document.getElementById('contrato-texto')?.textContent || '';
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.querySelector('[onclick="contratoCopiar()"]');
+    if(btn){ btn.textContent = '✓ Copiado'; setTimeout(()=>btn.textContent='📋 Copiar',2000); }
+  });
+}
+
+function contratoDescargar(){
+  const texto = document.getElementById('contrato-texto')?.textContent || '';
+  const tipoActual = window._contratoTipoActual || 'contrato';
+  const blob = new Blob([texto], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tipoActual}-${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+}
+
 // ── WALLET USDT BEP-20 ──
 const USDT_WALLET   = '0x599976526bfb091D367910BA801D8F302909E13A';
 const USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
