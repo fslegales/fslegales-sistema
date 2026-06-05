@@ -6530,19 +6530,11 @@ async function imprimirCD(){
   }
 }
 
-// INIT
-if(typeof supabase==='undefined'){
-} else {
-  (async()=>{
-    await loadClientes();
-    await finInit();
-    updateSubtipo();
-    updatePlSubtipo();
-    document.getElementById('h-fecha').value=todayStr();
-    document.getElementById('g-fecha').value=todayStr();
-    renderResumen();
-  })();
-}
+// INIT - solo inicializar formularios, no cargar datos antes del login
+updateSubtipo();
+updatePlSubtipo();
+const hFecha = document.getElementById('h-fecha'); if(hFecha) hFecha.value=todayStr();
+const gFecha = document.getElementById('g-fecha'); if(gFecha) gFecha.value=todayStr();
 
 
 
