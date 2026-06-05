@@ -74,7 +74,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── MAIN CONTENT ── */
 .main-content{flex:1;overflow-y:auto;padding:20px;max-width:900px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
-.tab-pane{display:none!important}.tab-pane.active{display:block!important}
+.tab-pane{display:none}.tab-pane.active{display:block}
 
 /* ── FORMS ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
@@ -2565,8 +2565,7 @@ async function loadSupervisor(){
   svItems.forEach(el=>el.classList.remove('active'));
   if(svItems.length) svItems[0].classList.add('active');
   document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
-  const tareasPane=document.getElementById('sv-tareas');
-  if(tareasPane){tareasPane.classList.add('active');tareasPane.style.display='block';}
+  document.getElementById('sv-tareas')?.classList.add('active');
   // Cargar datos (el pane ya es visible con el loading state)
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
   populateEmpSelects(); populateFilters(); populateClienteSelects(); renderSvTareas();
@@ -3803,14 +3802,12 @@ async function saveConfig(){
 
 // -- EMPLEADO ----------------------------------
 async function loadEmpleado(){
-  // Activar app ANTES del await
   document.getElementById('app-empleado').classList.add('active');
   const empItems=document.querySelectorAll('#emp-sidebar .sidebar-item');
   empItems.forEach(el=>el.classList.remove('active'));
   if(empItems.length) empItems[0].classList.add('active');
   document.querySelectorAll('#app-empleado .tab-pane').forEach(p=>p.classList.remove('active'));
-  const inicioPane=document.getElementById('emp-inicio');
-  if(inicioPane){inicioPane.classList.add('active');inicioPane.style.display='block';}
+  document.getElementById('emp-inicio')?.classList.add('active');
   await Promise.all([loadTareas(),loadClientes()]);
   document.getElementById('emp-title-brand').textContent='Hola, '+currentUser.nombre;
   const urgentes=allTareas.filter(t=>t.asignado===currentUser.role&&t.status!=='hecho'&&diasParaVencer(t.vence)<=3);
