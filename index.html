@@ -1163,6 +1163,10 @@ tr.clickable{cursor:pointer}
             <option value="cripto">Cripto</option>
           </select>
         </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+          <label style="font-size:12px;color:var(--t3);white-space:nowrap">O usá cotización manual:</label>
+          <input type="number" id="conv-manual" placeholder="ej: 1480" style="width:140px;margin:0;font-size:13px" oninput="calcConversor()"/>
+        </div>
         <div id="conv-resultado" style="margin-top:14px;font-size:22px;font-weight:500;color:var(--blue);min-height:32px"></div>
         <div id="conv-detalle" style="font-size:12px;color:var(--t3);margin-top:4px"></div>
       </div>
@@ -1214,6 +1218,16 @@ tr.clickable{cursor:pointer}
     <div class="card" style="padding:18px;border-left:3px solid #eab308">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Caja USDT</div>
       <div style="font-size:28px;font-weight:300;font-family:'DM Mono',monospace;color:#eab308" id="caja-usdt-val">⬡ 0</div>
+    </div>
+    <div class="card" style="padding:18px;border-left:3px solid var(--green);grid-column:1/-1">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px">Wallet USDT (BEP-20 · BSC)</div>
+          <div style="font-size:24px;font-weight:300;font-family:'DM Mono',monospace;color:var(--green)" id="caja-wallet-val">—</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:3px" id="caja-wallet-sub">0x5999...9E13A</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="cajaFetchWallet()">↻ Actualizar</button>
+      </div>
     </div>
   </div>
 
@@ -2356,7 +2370,7 @@ function svNav(el, paneId){
   else if(paneId==='sv-faltas-prov') renderFaltasProv('sv-faltas-prov-content');
   else if(paneId==='sv-faltas-mun') renderFaltasMun('sv-faltas-mun-content');
   else if(paneId==='sv-estadisticas') renderEstadisticas();
-  else if(paneId==='sv-fx'){ cajaOpChange(); cajaRender(); }
+  else if(paneId==='sv-fx'){ cajaOpChange(); cajaRender(); cajaFetchWallet(); }
   else if(FIN_PANES.includes(paneId)){
     if(!finLoaded) finInit().then(()=>FIN_RENDER_MAP[paneId]?.());
     else FIN_RENDER_MAP[paneId]?.();
@@ -7927,6 +7941,55 @@ async function renderEstadisticas(){
 </script>
 <script>
 
+// Fetch wallet para caja
+async function cajaFetchWallet(){
+  const el = document.getElementById('caja-wallet-val');
+  const sub = document.getElementById('caja-wallet-sub');
+  if(!el) return;
+  el.textContent = '…';
+  el.style.color = 'var(--t3)';
+  const WALLET = '0x599976526bfb091D367910BA801D8F302909E13A';
+  const CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
+  
+  // Intentar múltiples RPCs públicos de BSC
+  const RPCS = [
+    'https://bsc-dataseed1.binance.org/',
+    'https://bsc-dataseed2.binance.org/',
+    'https://bsc-dataseed.bnbchain.org/',
+    'https://rpc.ankr.com/bsc',
+  ];
+  
+  const body = {
+    jsonrpc:'2.0', id:1, method:'eth_call',
+    params:[{
+      to: CONTRACT,
+      data: '0x70a08231000000000000000000000000' + WALLET.slice(2).toLowerCase()
+    }, 'latest']
+  };
+  
+  for(const rpc of RPCS){
+    try {
+      const res = await fetch(rpc, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(data.result && data.result !== '0x' && data.result !== '0x0'){
+        const bal = parseInt(data.result, 16) / 1e18;
+        el.textContent = '⬡ ' + bal.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' USDT';
+        el.style.color = 'var(--green)';
+        if(sub) sub.textContent = 'Act. ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) + ' via ' + rpc.split('/')[2];
+        return;
+      }
+    } catch(e){ continue; }
+  }
+  
+  el.textContent = 'Sin conexión a BSC';
+  el.style.color = 'var(--red)';
+  if(sub) sub.textContent = 'Verificá tu conexión a internet';
+}
+
 // ══════════════════════════════════════════════════════════
 // MÓDULO CAJA DE CAMBIO
 // ══════════════════════════════════════════════════════════
@@ -8247,23 +8310,31 @@ function calcConversor() {
   const monto   = parseFloat(document.getElementById('conv-monto')?.value) || 0;
   const moneda  = document.getElementById('conv-moneda')?.value || 'ars_a_usd';
   const tipoKey = document.getElementById('conv-tipo')?.value  || 'blue';
+  const manual  = parseFloat(document.getElementById('conv-manual')?.value) || 0;
   const resEl   = document.getElementById('conv-resultado');
   const detEl   = document.getElementById('conv-detalle');
   if (!resEl) return;
   if (!monto) { resEl.textContent = ''; if(detEl) detEl.textContent=''; return; }
 
-  const tipoMap = { blue:'blue', oficial:'oficial', mep:'bolsa', ccl:'contadoconliqui', mayorista:'mayorista', cripto:'cripto' };
-  const d = _mercadoData.find(x => x.casa === tipoMap[tipoKey]);
-  if (!d) { resEl.textContent = 'Sin datos'; return; }
+  let cotizVenta, cotizCompra, nombreFuente;
+  if (manual > 0) {
+    cotizVenta = manual; cotizCompra = manual; nombreFuente = 'cotiz. manual';
+  } else {
+    const tipoMap = { blue:'blue', oficial:'oficial', mep:'bolsa', ccl:'contadoconliqui', mayorista:'mayorista', cripto:'cripto' };
+    const d = _mercadoData.find(x => x.casa === tipoMap[tipoKey]);
+    if (!d) { resEl.textContent = 'Sin datos de mercado - ingresá una cotización manual'; return; }
+    cotizVenta = d.venta; cotizCompra = d.compra;
+    nombreFuente = MERCADO_CONFIG[d.casa]?.nombre || d.casa;
+  }
 
   let resultado, detalle;
   if (moneda === 'ars_a_usd') {
-    resultado = monto / d.venta;
-    detalle = `${fmtArs(monto)} ÷ $${fmtNum(d.venta)} (venta ${MERCADO_CONFIG[d.casa]?.nombre||d.casa})`;
-    resEl.textContent = `U$S ${resultado.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    resultado = monto / cotizVenta;
+    detalle = fmtArs(monto) + ' ÷ $' + fmtNum(cotizVenta) + ' (' + nombreFuente + ')';
+    resEl.textContent = 'U$S ' + resultado.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
   } else {
-    resultado = monto * d.compra;
-    detalle = `U$S ${monto} × $${fmtNum(d.compra)} (compra ${MERCADO_CONFIG[d.casa]?.nombre||d.casa})`;
+    resultado = monto * cotizCompra;
+    detalle = 'U$S ' + monto + ' × $' + fmtNum(cotizCompra) + ' (' + nombreFuente + ')';
     resEl.textContent = fmtArs(resultado);
   }
   if (detEl) detEl.textContent = detalle;
@@ -8740,98 +8811,44 @@ async function fetchUsdtBalance() {
   const errEl = document.getElementById('usdt-error');
   if (!balEl) return;
 
-  if (dot)   dot.style.background = '#f59e0b';
+  if (dot)  dot.style.background = '#f59e0b';
   balEl.textContent = '…';
   if (subEl)  subEl.textContent = 'Consultando BSC…';
   if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
 
-  try {
-    // Usar Ankr public RPC para BSC - no requiere API key
-    const body = {
-      jsonrpc: '2.0', id: 1, method: 'eth_call',
-      params: [{
-        to: USDT_CONTRACT,
-        data: '0x70a08231000000000000000000000000' + USDT_WALLET.slice(2).toLowerCase()
-      }, 'latest']
-    };
-    const res  = await fetch('https://rpc.ankr.com/bsc', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (data.result && data.result !== '0x') {
-      const balance = parseInt(data.result, 16) / 1e18;
-      balEl.textContent = balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDT';
-      if (subEl)  subEl.textContent = '≈ U$D ' + balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (timeEl) timeEl.textContent = 'Act. ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      if (dot)    dot.style.background = 'var(--green)';
-    } else {
-      throw new Error('Sin respuesta');
-    }
-  } catch(e) {
-    balEl.textContent = '—';
-    if (subEl)  subEl.textContent = '';
-    if (timeEl) timeEl.textContent = '';
-    if (dot)    dot.style.background = 'var(--red)';
-    if (errEl)  { errEl.textContent = 'No se pudo obtener el saldo. Intentá de nuevo.'; errEl.style.display = 'block'; }
-  }
-}
+  const WALLET   = '0x599976526bfb091D367910BA801D8F302909E13A';
+  const CONTRACT = '0x55d398326f99059fF775485246999027B3197955';
+  const RPCS = [
+    'https://bsc-dataseed1.binance.org/',
+    'https://bsc-dataseed2.binance.org/',
+    'https://bsc-dataseed.bnbchain.org/',
+    'https://rpc.ankr.com/bsc',
+  ];
+  const body = {
+    jsonrpc:'2.0', id:1, method:'eth_call',
+    params:[{to:CONTRACT, data:'0x70a08231000000000000000000000000'+WALLET.slice(2).toLowerCase()}, 'latest']
+  };
 
-// CALCULADORA FX PROFIT
-function calcFxProfit(){
-  // Ejemplo: cliente pide $1.415.000, son 1000 USD, USDT cotiza $1490, costo entrada 2.5%
-  // → necesitás 1415000/1490 = 949.66 USDT
-  // → con costo 2.5%: 949.66 * 1.025 = 973.4 USDT de costo real
-  // → tenés 1000 USD ≈ 1000 USDT disponibles
-  // → profit = 1000 - 973.4 = 26.6 USDT
-
-  const arsCliente = parseFloat(document.getElementById('calc-ars-cliente')?.value) || 0;
-  const usdCliente = parseFloat(document.getElementById('calc-usd-cliente')?.value) || 0;
-  const cotizUsdt  = parseFloat(document.getElementById('calc-cotiz-compra')?.value) || 0;
-  const pctCosto   = parseFloat(document.getElementById('calc-pct-costo')?.value)   || 0;
-
-  const res = document.getElementById('calc-resultado');
-  if(!res) return;
-  if(!arsCliente || !usdCliente || !cotizUsdt){ res.style.display='none'; return; }
-  res.style.display='block';
-
-  // USDT necesarios para cubrir los ARS
-  const usdtNecesarios = arsCliente / cotizUsdt;
-
-  // Costo real con el % de entrada
-  const usdtCostoReal = usdtNecesarios * (1 + pctCosto / 100);
-
-  // Profit = USD del cliente (≈ USDT disponibles) - costo real
-  const profitUsdt = usdCliente - usdtCostoReal;
-  const profitArs  = profitUsdt * cotizUsdt;
-  const margen     = usdCliente > 0 ? (profitUsdt / usdCliente * 100) : 0;
-
-  const arsPagoEl = document.getElementById('calc-ars-pago');
-  if(arsPagoEl) arsPagoEl.textContent = fmtArs(arsCliente);
-
-  const costoEl = document.getElementById('calc-costo-val');
-  if(costoEl) costoEl.textContent = usdtCostoReal.toFixed(2) + ' USDT';
-
-  const profitEl = document.getElementById('calc-profit-val');
-  if(profitEl){
-    profitEl.textContent = profitUsdt.toFixed(2) + ' USDT (' + fmtArs(profitArs) + ')';
-    profitEl.style.color = profitUsdt >= 0 ? 'var(--green)' : 'var(--red)';
+  for(const rpc of RPCS){
+    try {
+      const res  = await fetch(rpc, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const data = await res.json();
+      if (data.result && data.result !== '0x' && data.result !== '0x0') {
+        const balance = parseInt(data.result, 16) / 1e18;
+        balEl.textContent = balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDT';
+        if (subEl)  subEl.textContent = '≈ U$D ' + balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (timeEl) timeEl.textContent = 'Act. ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        if (dot)    dot.style.background = 'var(--green)';
+        return;
+      }
+    } catch(e){ continue; }
   }
 
-  const margenEl = document.getElementById('calc-margen-val');
-  if(margenEl) margenEl.textContent = margen.toFixed(2) + '%';
-
-  const det = document.getElementById('calc-detalle');
-  if(det){
-    det.innerHTML =
-      '💵 Operación: cliente pide <strong>' + fmtArs(arsCliente) + '</strong> con <strong>U$S ' + usdCliente.toLocaleString('es-AR') + '</strong><br>' +
-      '🔢 USDT para cubrir los ARS: <strong>' + usdtNecesarios.toFixed(2) + ' USDT</strong> (a $' + cotizUsdt.toLocaleString('es-AR') + '/USDT)<br>' +
-      '💸 Con costo de entrada ' + pctCosto + '%: <strong>' + usdtCostoReal.toFixed(2) + ' USDT</strong><br>' +
-      '✅ Profit: <strong style="color:' + (profitUsdt>=0?'var(--green)':'var(--red)') + '">' +
-        profitUsdt.toFixed(2) + ' USDT ≈ ' + fmtArs(profitArs) +
-      '</strong>';
-  }
+  balEl.textContent = '—';
+  if (subEl)  subEl.textContent = '';
+  if (timeEl) timeEl.textContent = '';
+  if (dot)    dot.style.background = 'var(--red)';
+  if (errEl)  { errEl.textContent = 'No se pudo obtener el saldo. Verificá tu conexión.'; errEl.style.display = 'block'; }
 }
 
 // Auto-fetch al entrar a Mercado
