@@ -2646,7 +2646,11 @@ async function loadSupervisor(){
   document.getElementById('sv-tareas')?.classList.add('active');
   // Cargar datos (el pane ya es visible con el loading state)
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
-  populateEmpSelects(); populateFilters(); populateClienteSelects(); renderSvTareas();
+  populateEmpSelects(); populateFilters(); populateClienteSelects();
+  // Re-asegurar que sv-tareas sigue activo tras la carga de datos
+  document.querySelectorAll('#app-supervisor .tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sv-tareas').classList.add('active');
+  renderSvTareas();
   await autoArchivar();
 }
 function populateEmpSelects(){
