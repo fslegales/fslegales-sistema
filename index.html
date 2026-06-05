@@ -2647,11 +2647,13 @@ async function loadSupervisor(){
   // Cargar datos (el pane ya es visible con el loading state)
   await Promise.all([loadTareas(),loadPlantillas(),loadPlantillasAnuales(),loadClientes()]);
   populateEmpSelects(); populateFilters(); populateClienteSelects();
-  // Activar sv-tareas - limpiar absolutamente todos los panes del documento
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById('sv-tareas').classList.add('active');
   renderSvTareas();
   await autoArchivar();
+  // Forzar sv-tareas activo AL FINAL de todo con setTimeout para ganar al ultimo render
+  setTimeout(()=>{
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('sv-tareas').classList.add('active');
+  }, 100);
 }
 function populateEmpSelects(){
   const opts=['emp1','emp2','emp3'].map(e=>`<option value="${e}">${empNames[e]}</option>`).join('');
