@@ -6582,14 +6582,26 @@ async function fpAutoCompletar(){
     set(dp+'dni',       campos.dni);
     set(dp+'domicilio', campos.domicilio);
     set(dp+'caracter',  campos.caracter||'titular registral del vehiculo');
-    // Datos de la infraccion en acta-0
-    set('fp-acta-0-dominio',   campos.dominio);
-    set('fp-acta-0-vehiculo',  campos.vehiculo);
-    set('fp-acta-0-acta',      campos.acta);
-    set('fp-acta-0-fechaacta', campos.fechaacta);
-    set('fp-acta-0-lugar',     campos.lugar);
-    set('fp-acta-0-velocidad', campos.velocidad);
-    set('fp-acta-0-juzgado',   campos.juzgado);
+    // Datos de la infraccion - segun panel activo
+    if(pfx === 'fp-e-') {
+      // Panel empleado: campos estaticos con prefijo fp-e-
+      set('fp-e-dominio',   campos.dominio);
+      set('fp-e-vehiculo',  campos.vehiculo);
+      set('fp-e-acta',      campos.acta);
+      set('fp-e-fechaacta', campos.fechaacta);
+      set('fp-e-lugar',     campos.lugar);
+      set('fp-e-velocidad', campos.velocidad);
+      set('fp-e-juzgado',   campos.juzgado);
+    } else {
+      // Panel supervisor: campos dinamicos acta-0
+      set('fp-acta-0-dominio',   campos.dominio);
+      set('fp-acta-0-vehiculo',  campos.vehiculo);
+      set('fp-acta-0-acta',      campos.acta);
+      set('fp-acta-0-fechaacta', campos.fechaacta);
+      set('fp-acta-0-lugar',     campos.lugar);
+      set('fp-acta-0-velocidad', campos.velocidad);
+      set('fp-acta-0-juzgado',   campos.juzgado);
+    }
 
     btn.disabled = false;
     btn.style.background = '#2a9d5c';
