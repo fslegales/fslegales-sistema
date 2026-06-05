@@ -2298,8 +2298,7 @@ async function doLogin(){
   currentUser={role,nombre:roleLabel(role)};
   document.getElementById('login-pin').value='';
   document.getElementById('app-login').style.display='none';
-  if(role==='supervisor') await loadSupervisor();
-  else await loadEmpleado();
+  await loadSupervisor();
 }
 function logout(){
   currentUser=null; openThreads={}; threadComments={};
