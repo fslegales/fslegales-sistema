@@ -2257,6 +2257,10 @@ tr.clickable{cursor:pointer}
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){
+  // Asegurar estado limpio al cargar: solo sv-tareas activo
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sv-tareas')?.classList.add('active');
+
   document.addEventListener('click',function(e){
     var d=e.target.closest('[data-gid]');
     if(d&&window.eliminarGasto){window.eliminarGasto(d.dataset.gid);return;}
