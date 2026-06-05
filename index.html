@@ -1273,6 +1273,64 @@ tr.clickable{cursor:pointer}
 
       <!-- Lista de operaciones -->
       <div id="fx-list"></div>
+
+      <!-- CALCULADORA DE COSTO/PROFIT -->
+      <div class="card" style="margin-top:24px;padding:20px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">⚡ Calculadora de operación</div>
+        <div style="font-size:13px;color:var(--t3);margin-bottom:18px">
+          Cliente pide ARS → vos pagás con USDT → calculá cuánto USDT usás y cuál es tu profit
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="form-group">
+            <label>ARS que pedís al cliente (o que le entregás)</label>
+            <input type="number" id="calc-ars-cliente" placeholder="ej: 1415000" min="0" step="1" oninput="calcFxProfit()"/>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">Los pesos que recibís / entregás en la operación</div>
+          </div>
+          <div class="form-group">
+            <label>USD físicos en la operación</label>
+            <input type="number" id="calc-usd-cliente" placeholder="ej: 1000" min="0" step="0.01" oninput="calcFxProfit()"/>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">USD que maneja el cliente (define cuánto USDT necesitás)</div>
+          </div>
+          <div class="form-group">
+            <label>Cotización USDT hoy (ARS por USDT)</label>
+            <input type="number" id="calc-cotiz-compra" placeholder="ej: 1490" min="0" step="0.01" oninput="calcFxProfit()"/>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">Precio al que comprás / está valuado el USDT hoy</div>
+          </div>
+          <div class="form-group">
+            <label>% costo de entrada del USDT</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="number" id="calc-pct-costo" placeholder="ej: 2.5" min="0" step="0.1" oninput="calcFxProfit()" style="flex:1"/>
+              <span style="font-size:14px;color:var(--t3)">%</span>
+            </div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">Costo real para conseguir ese USDT (spread de mercado)</div>
+          </div>
+        </div>
+        <div id="calc-resultado" style="background:var(--surface2);border-radius:var(--radius);padding:16px;display:none">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">ARS que pagás</div>
+              <div style="font-size:18px;font-weight:500;color:var(--red)" id="calc-ars-pago">—</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">Transferís al cliente</div>
+            </div>
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Costo real en ARS</div>
+              <div style="font-size:18px;font-weight:500;color:var(--amber)" id="calc-costo-val">—</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">Comprás USDT + spread</div>
+            </div>
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Profit neto</div>
+              <div style="font-size:18px;font-weight:500;color:var(--green)" id="calc-profit-val">—</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">ARS que te quedán</div>
+            </div>
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">Margen real</div>
+              <div style="font-size:18px;font-weight:500;color:var(--blue)" id="calc-margen-val">—</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">% sobre lo pagado</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--t3);line-height:1.8" id="calc-detalle"></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -8527,18 +8585,28 @@ async function fetchUsdtBalance() {
   if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
 
   try {
-    const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${USDT_WALLET}&tag=latest&apikey=YourApiKeyToken`;
-    const res  = await fetch(url);
+    // Usar Ankr public RPC para BSC - no requiere API key
+    const body = {
+      jsonrpc: '2.0', id: 1, method: 'eth_call',
+      params: [{
+        to: USDT_CONTRACT,
+        data: '0x70a08231000000000000000000000000' + USDT_WALLET.slice(2).toLowerCase()
+      }, 'latest']
+    };
+    const res  = await fetch('https://rpc.ankr.com/bsc', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
     const data = await res.json();
-
-    if (data.status === '1' && data.result != null) {
-      const balance = Number(BigInt(data.result)) / 1e18;
+    if (data.result && data.result !== '0x') {
+      const balance = parseInt(data.result, 16) / 1e18;
       balEl.textContent = balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USDT';
       if (subEl)  subEl.textContent = '≈ U$D ' + balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       if (timeEl) timeEl.textContent = 'Act. ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       if (dot)    dot.style.background = 'var(--green)';
     } else {
-      throw new Error(data.message || 'Sin respuesta');
+      throw new Error('Sin respuesta');
     }
   } catch(e) {
     balEl.textContent = '—';
@@ -8546,6 +8614,62 @@ async function fetchUsdtBalance() {
     if (timeEl) timeEl.textContent = '';
     if (dot)    dot.style.background = 'var(--red)';
     if (errEl)  { errEl.textContent = 'No se pudo obtener el saldo. Intentá de nuevo.'; errEl.style.display = 'block'; }
+  }
+}
+
+// CALCULADORA FX PROFIT
+function calcFxProfit(){
+  // Ejemplo: cliente pide $1.415.000, son 1000 USD, USDT cotiza $1490, costo entrada 2.5%
+  // → necesitás 1415000/1490 = 949.66 USDT
+  // → con costo 2.5%: 949.66 * 1.025 = 973.4 USDT de costo real
+  // → tenés 1000 USD ≈ 1000 USDT disponibles
+  // → profit = 1000 - 973.4 = 26.6 USDT
+
+  const arsCliente = parseFloat(document.getElementById('calc-ars-cliente')?.value) || 0;
+  const usdCliente = parseFloat(document.getElementById('calc-usd-cliente')?.value) || 0;
+  const cotizUsdt  = parseFloat(document.getElementById('calc-cotiz-compra')?.value) || 0;
+  const pctCosto   = parseFloat(document.getElementById('calc-pct-costo')?.value)   || 0;
+
+  const res = document.getElementById('calc-resultado');
+  if(!res) return;
+  if(!arsCliente || !usdCliente || !cotizUsdt){ res.style.display='none'; return; }
+  res.style.display='block';
+
+  // USDT necesarios para cubrir los ARS
+  const usdtNecesarios = arsCliente / cotizUsdt;
+
+  // Costo real con el % de entrada
+  const usdtCostoReal = usdtNecesarios * (1 + pctCosto / 100);
+
+  // Profit = USD del cliente (≈ USDT disponibles) - costo real
+  const profitUsdt = usdCliente - usdtCostoReal;
+  const profitArs  = profitUsdt * cotizUsdt;
+  const margen     = usdCliente > 0 ? (profitUsdt / usdCliente * 100) : 0;
+
+  const arsPagoEl = document.getElementById('calc-ars-pago');
+  if(arsPagoEl) arsPagoEl.textContent = fmtArs(arsCliente);
+
+  const costoEl = document.getElementById('calc-costo-val');
+  if(costoEl) costoEl.textContent = usdtCostoReal.toFixed(2) + ' USDT';
+
+  const profitEl = document.getElementById('calc-profit-val');
+  if(profitEl){
+    profitEl.textContent = profitUsdt.toFixed(2) + ' USDT (' + fmtArs(profitArs) + ')';
+    profitEl.style.color = profitUsdt >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  const margenEl = document.getElementById('calc-margen-val');
+  if(margenEl) margenEl.textContent = margen.toFixed(2) + '%';
+
+  const det = document.getElementById('calc-detalle');
+  if(det){
+    det.innerHTML =
+      '💵 Operación: cliente pide <strong>' + fmtArs(arsCliente) + '</strong> con <strong>U$S ' + usdCliente.toLocaleString('es-AR') + '</strong><br>' +
+      '🔢 USDT para cubrir los ARS: <strong>' + usdtNecesarios.toFixed(2) + ' USDT</strong> (a $' + cotizUsdt.toLocaleString('es-AR') + '/USDT)<br>' +
+      '💸 Con costo de entrada ' + pctCosto + '%: <strong>' + usdtCostoReal.toFixed(2) + ' USDT</strong><br>' +
+      '✅ Profit: <strong style="color:' + (profitUsdt>=0?'var(--green)':'var(--red)') + '">' +
+        profitUsdt.toFixed(2) + ' USDT ≈ ' + fmtArs(profitArs) +
+      '</strong>';
   }
 }
 
