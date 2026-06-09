@@ -796,8 +796,9 @@ tr.clickable{cursor:pointer}
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-dark" id="fp-generar-btn" style="background:var(--accent);color:#fff">Generar PDF</button>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;align-items:center">
+      <span id="fp-firma-status" style="font-size:12px;color:var(--text3);display:none"></span>
+      <button class="btn btn-dark" id="fp-generar-btn" style="background:var(--accent);color:#fff">📄 Generar JPG</button>
     </div>
   </div>
 </div>
@@ -1860,8 +1861,9 @@ tr.clickable{cursor:pointer}
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-dark" id="fp-e-generar-btn" style="background:var(--accent);color:#fff">Generar PDF</button>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;align-items:center">
+      <span id="fp-e-firma-status" style="font-size:12px;color:var(--text3);display:none"></span>
+      <button class="btn btn-dark" id="fp-e-generar-btn" style="background:var(--accent);color:#fff">📄 Generar JPG</button>
     </div>
   </div>
 </div>
@@ -6810,40 +6812,227 @@ function fpSanitize(str){
     .replace(/[^\x00-\xFF]/g,'?');
 }
 
-async function generarFaltaPDF(){
-  if(typeof PDFLib === 'undefined'){ alert('Error: libreria PDF no cargo. Recarga la pagina.'); return; }
-  const { PDFDocument, rgb, StandardFonts } = PDFLib;
-  const pdfDoc = await PDFDocument.create();
-  const fontNormal    = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontTimes     = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const fontTimesBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+// ── EXTRAE FIRMA DEL DNI USANDO CLAUDE API ──────────────────────────────────
+async function fpExtraerFirmaDelDNI(dniDataUrl, escrito) {
+  const statusEl = document.getElementById(`fp-${escrito === 'd' ? '' : 'e-'}firma-status`);
+  const setStatus = (msg) => { if(statusEl){ statusEl.textContent = msg; statusEl.style.display = msg ? 'inline' : 'none'; } };
+  
+  try {
+    setStatus('🔍 Buscando firma en el DNI...');
+    const base64 = dniDataUrl.split(',')[1];
+    const mediaType = dniDataUrl.includes('image/png') ? 'image/png' : 'image/jpeg';
+    
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: 'Esta es una foto del frente o dorso de un DNI argentino. Necesito que me devuelvas las coordenadas exactas del área donde está la firma manuscrita del titular (no la del funcionario, sino la firma de la persona). Responde SOLO con un JSON: {"x": número entre 0 y 1 (fracción del ancho), "y": número entre 0 y 1 (fracción del alto desde arriba), "w": número entre 0 y 1 (fracción del ancho del recorte), "h": número entre 0 y 1 (fracción del alto del recorte)}. Si no hay firma visible responde {"x":0,"y":0,"w":0,"h":0}. Sin texto adicional.' }
+          ]
+        }]
+      })
+    });
+    
+    const data = await resp.json();
+    const txt = data.content?.map(b => b.text||'').join('').trim();
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const coords = JSON.parse(clean);
+    
+    if (!coords.w || !coords.h) { setStatus(''); return null; }
+    
+    // Recortar la firma usando canvas
+    setStatus('✂️ Recortando firma...');
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = dniDataUrl;
+    });
+    
+    const sx = Math.floor(coords.x * img.naturalWidth);
+    const sy = Math.floor(coords.y * img.naturalHeight);
+    const sw = Math.floor(coords.w * img.naturalWidth);
+    const sh = Math.floor(coords.h * img.naturalHeight);
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = sw; canvas.height = sh;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    
+    setStatus('✅ Firma extraída');
+    setTimeout(() => setStatus(''), 3000);
+    return canvas.toDataURL('image/png');
+    
+  } catch(e) {
+    console.error('Error extrayendo firma:', e);
+    setStatus('');
+    return null;
+  }
+}
 
-  const W=595.28, H=841.89, ML=70, MR=70, MT=70, lineH=16;
-  const maxW = W - ML - MR;
-  let page = pdfDoc.addPage([W, H]);
-  let y = H - MT;
-
-  const newPage = () => { page = pdfDoc.addPage([W, H]); y = H - MT; };
-  const checkY  = (needed=lineH*2) => { if(y < MT + needed) newPage(); };
-
-  const writeLine = (text, font, size, indent=0) => {
-    const x = ML + indent;
-    const aw = maxW - indent;
-    const words = fpSanitize(text).split(' ');
+// ── GENERA EL DESCARGO COMO IMAGEN JPG ──────────────────────────────────────
+async function fpRenderizarDescargoCanvas(lineas, firmaDataUrl, dniFrente, dniDorso, nombre, dni, caracter, dominio, vehiculo) {
+  const MM = 3.7795; // px por mm a 96dpi; usamos escala 2x para calidad
+  const ESC = 2;
+  const PW = Math.round(210 * MM * ESC); // A4 ancho
+  const PH = Math.round(297 * MM * ESC); // A4 alto
+  const ML = Math.round(25 * MM * ESC);
+  const MR = Math.round(25 * MM * ESC);
+  const MT = Math.round(25 * MM * ESC);
+  const TW = PW - ML - MR;
+  const LH = Math.round(5.8 * MM * ESC); // line height
+  
+  // Cargar fuente Times New Roman via canvas (usa la del sistema o serif)
+  const FONT_NORMAL = `${Math.round(11 * ESC * 0.352778 * MM)}px "Times New Roman", Times, serif`;
+  const FONT_BOLD   = `bold ${Math.round(11 * ESC * 0.352778 * MM)}px "Times New Roman", Times, serif`;
+  
+  // Primero calculamos cuántas páginas necesitamos
+  // Hacemos un pre-render offscreen para medir
+  const pages = [];
+  let currentLines = [];
+  
+  const tmpCv = document.createElement('canvas');
+  tmpCv.width = PW; tmpCv.height = PH;
+  const tmpCtx = tmpCv.getContext('2d');
+  
+  const wrapText = (ctx, text, font, maxW) => {
+    ctx.font = font;
+    const words = text.split(' ');
+    const result = [];
     let line = '';
-    for(const word of words){
-      const test = line ? line+' '+word : word;
-      if(font.widthOfTextAtSize(test, size) > aw && line){
-        checkY(); page.drawText(line, {x, y, font, size, color:rgb(0,0,0)}); y -= lineH; line = word;
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) {
+        result.push(line); line = w;
       } else { line = test; }
     }
-    if(line){ checkY(); page.drawText(line, {x, y, font, size, color:rgb(0,0,0)}); y -= lineH; }
+    if (line) result.push(line);
+    return result;
   };
+  
+  let y = MT;
+  const PAGE_BOTTOM = PH - MT;
+  
+  const flushPage = () => {
+    pages.push([...currentLines]);
+    currentLines = [];
+    y = MT;
+  };
+  
+  const addLine = (text, font, indent=0, extraSpace=0) => {
+    const wrapped = wrapText(tmpCtx, text, font, TW - indent);
+    for (let i = 0; i < wrapped.length; i++) {
+      if (y + LH > PAGE_BOTTOM) flushPage();
+      currentLines.push({ text: wrapped[i], font, x: ML + indent, y, extraSpace: i === wrapped.length - 1 ? extraSpace : 0 });
+      y += LH + (i === wrapped.length - 1 ? extraSpace : 0);
+    }
+  };
+  
+  const addSkip = (n=1) => {
+    y += LH * n;
+    if (y > PAGE_BOTTOM) flushPage();
+  };
+  
+  for (const l of lineas) {
+    if (l.type === 'skip') { addSkip(l.n||1); }
+    else if (l.type === 'line') { addLine(l.text, l.bold ? FONT_BOLD : FONT_NORMAL, l.indent||0, l.extra||0); }
+    else if (l.type === 'firma') {
+      // Espacio para firma: imagen + nombre
+      if (y + LH * 6 > PAGE_BOTTOM) flushPage();
+      currentLines.push({ type: 'firma', firmaDataUrl, nombre, dni, caracter, dominio, vehiculo, y, x: ML });
+      y += LH * 5;
+    }
+  }
+  if (currentLines.length) pages.push(currentLines);
+  
+  // Ahora renderizamos cada página
+  const pageCanvases = [];
+  
+  for (const pageLines of pages) {
+    const cv = document.createElement('canvas');
+    cv.width = PW; cv.height = PH;
+    const ctx = cv.getContext('2d');
+    
+    // Fondo blanco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, PW, PH);
+    ctx.fillStyle = '#000000';
+    
+    for (const l of pageLines) {
+      if (l.type === 'firma') {
+        // Insertar firma
+        if (l.firmaDataUrl) {
+          try {
+            const img = await new Promise((res,rej) => { const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=l.firmaDataUrl; });
+            const maxFW = Math.round(45 * MM * ESC);
+            const maxFH = Math.round(20 * MM * ESC);
+            const scale = Math.min(maxFW / img.naturalWidth, maxFH / img.naturalHeight);
+            const fw = img.naturalWidth * scale, fh = img.naturalHeight * scale;
+            ctx.drawImage(img, l.x, l.y, fw, fh);
+          } catch(e) { console.warn('No se pudo dibujar firma:', e); }
+        }
+        // Nombre y datos debajo de la firma
+        const yNombre = l.y + LH * 3;
+        ctx.font = FONT_BOLD;
+        ctx.fillText(l.nombre || '[NOMBRE]', l.x, yNombre);
+        ctx.font = FONT_NORMAL;
+        ctx.fillText('DNI N° ' + (l.dni||'[DNI]'), l.x, yNombre + LH);
+        if (l.caracter) ctx.fillText(l.caracter, l.x, yNombre + LH*2);
+        if (l.dominio) ctx.fillText('Dominio ' + l.dominio + (l.vehiculo ? ' - ' + l.vehiculo : ''), l.x, yNombre + LH*3);
+      } else {
+        ctx.font = l.font;
+        ctx.fillStyle = '#000000';
+        ctx.fillText(l.text, l.x, l.y);
+      }
+    }
+    pageCanvases.push(cv);
+  }
+  
+  // Agregar páginas de DNI si existen
+  if (dniFrente || dniDorso) {
+    const dniCv = document.createElement('canvas');
+    dniCv.width = PW; dniCv.height = PH;
+    const dctx = dniCv.getContext('2d');
+    dctx.fillStyle = '#ffffff';
+    dctx.fillRect(0,0,PW,PH);
+    
+    dctx.font = FONT_BOLD;
+    dctx.fillStyle = '#000000';
+    dctx.fillText('DOCUMENTO NACIONAL DE IDENTIDAD – TITULAR', ML, MT);
+    dctx.font = FONT_NORMAL;
+    dctx.fillStyle = '#444444';
+    dctx.fillText('Frente y dorso adjuntos a los fines del presente escrito.', ML, MT + LH);
+    dctx.fillStyle = '#000000';
+    
+    const halfH = Math.round((PH - MT - MT) / 2) - LH;
+    const maxIW = TW;
+    
+    const drawDNIImg = async (dataUrl, labelY, imgY) => {
+      dctx.font = FONT_BOLD;
+      const labelText = dataUrl === dniFrente ? 'Frente' : 'Dorso';
+      dctx.fillText(labelText, ML, labelY);
+      const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=dataUrl; });
+      const scale = Math.min(maxIW / img.naturalWidth, halfH / img.naturalHeight);
+      const w = img.naturalWidth*scale, h = img.naturalHeight*scale;
+      dctx.drawImage(img, ML, imgY, w, h);
+    };
+    
+    if (dniFrente) await drawDNIImg(dniFrente, MT + LH*2, MT + LH*3);
+    if (dniDorso)  await drawDNIImg(dniDorso, MT + PH/2 - LH, MT + PH/2);
+    
+    pageCanvases.push(dniCv);
+  }
+  
+  return pageCanvases;
+}
 
-  const skip    = (n=1) => { y -= lineH * n; };
-  const titulo  = (txt) => { skip(0.5); writeLine(txt, fontTimesBold, 11); skip(0.3); };
-  const parrafo = (txt, indent=0) => { writeLine(txt, fontTimes, 11, indent); skip(0.5); };
-  // Detectar cual panel esta activo
+async function generarFaltaPDF(){
+  // Recolectar datos primero
   const gv  = id => (window._fpData && window._fpData[id] !== undefined) ? window._fpData[id] : (document.querySelector('#'+id)?.value || '');
   const cb  = id => (window._fpData && window._fpData[id] !== undefined) ? window._fpData[id] : (document.querySelector('#'+id)?.checked || false);
   const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
@@ -6881,29 +7070,40 @@ async function generarFaltaPDF(){
 
   if (actas.length === 0) { alert('No hay infracciones cargadas.'); return; }
   const algoPedido = actas.some(a => a.presc||a.morig||a.nulidad||a.pagoSubsidio||a.pagoDirecto);
-  if(!algoPedido){ alert('Tilda al menos una opcion en alguna infraccion antes de generar el PDF.'); return; }
+  if(!algoPedido){ alert('Tilda al menos una opcion en alguna infraccion antes de generar.'); return; }
 
-  // Para compatibilidad con el resto del codigo, usar primera acta como referencia
-  const dominio   = actas[0].dominio;
-  const vehiculo  = actas[0].vehiculo;
-  const acta      = actas[0].acta;
-  const fechaacta = actas[0].fechaacta;
-  const lugar     = actas[0].lugar;
-  const velocidad = actas[0].velocidad;
   const juzgado   = actas[0].juzgado;
   const pedirPresc        = actas.some(a=>a.presc);
   const pedirMorig        = actas.some(a=>a.morig);
   const pedirNulidad      = actas.some(a=>a.nulidad);
-  const nulActa           = actas.some(a=>a.nulActa);
-  const nulFoto           = actas.some(a=>a.nulFoto);
   const pedirPagoSubsidio = actas.some(a=>a.pagoSubsidio);
   const pedirPagoDirecto  = actas.some(a=>a.pagoDirecto);
 
-  writeLine('Bahia Blanca, ' + hoy, fontNormal, 11);
+  // Deshabilitar botón mientras genera
+  const genBtn = document.getElementById('fp-generar-btn');
+  if(genBtn){ genBtn.disabled = true; genBtn.textContent = '⏳ Generando...'; }
+
+  // Extraer firma del DNI si hay imagen cargada
+  let firmaDataUrl = null;
+  const dniFrente = fpDniData['d-frente'];
+  const dniDorso  = fpDniData['d-dorso'];
+  const dniParaFirma = dniFrente || dniDorso;
+  if (dniParaFirma) {
+    firmaDataUrl = await fpExtraerFirmaDelDNI(dniParaFirma, 'd');
+  }
+
+  // Construir array de líneas para el documento
+  const L = []; // array de instrucciones de renderizado
+  const line  = (text, bold=false, indent=0) => L.push({ type:'line', text: fpSanitize(text), bold, indent });
+  const skip  = (n=1) => L.push({ type:'skip', n });
+  const titulo = (txt) => { skip(0.4); line(txt, true); skip(0.2); };
+  const parrafo = (txt, indent=0) => { line(txt, false, indent); skip(0.4); };
+
+  line('Bahia Blanca, ' + hoy);
   skip();
-  writeLine('Sr. Juez de Faltas', fontTimesBold, 11);
-  writeLine(fpSanitize(juzgado)||'Juzgado de Faltas - Provincia de Buenos Aires', fontTimesBold, 11);
-  writeLine('Su Despacho.-', fontTimesBold, 11);
+  line('Sr. Juez de Faltas', true);
+  line(fpSanitize(juzgado)||'Juzgado de Faltas - Provincia de Buenos Aires', true);
+  line('Su Despacho.-', true);
   skip();
 
   let objetoTexto = [];
@@ -6918,82 +7118,57 @@ async function generarFaltaPDF(){
 
   titulo('I. DATOS DE LAS INFRACCIONES');
   actas.forEach((a, idx) => {
-    if (actas.length > 1) { writeLine((idx+1) + '. Acta N ' + (a.acta||'[ACTA]'), fontTimesBold, 11, 5); }
-    writeLine('Acta N: ' + (a.acta||'[ACTA]'), fontTimes, 11, 10);
-    writeLine('Fecha y hora: ' + (a.fechaacta||'[FECHA]'), fontTimes, 11, 10);
-    writeLine('Lugar: ' + (a.lugar||'[LUGAR]'), fontTimes, 11, 10);
-    writeLine('Vehiculo: Dominio ' + (a.dominio||'[DOMINIO]') + ' - ' + (a.vehiculo||'[VEHICULO]'), fontTimes, 11, 10);
-    if(a.velocidad) writeLine('Velocidad registrada: ' + a.velocidad, fontTimes, 11, 10);
+    if (actas.length > 1) line((idx+1) + '. Acta N ' + (a.acta||'[ACTA]'), true, 5);
+    line('Acta N: ' + (a.acta||'[ACTA]'), false, 10);
+    line('Fecha y hora: ' + (a.fechaacta||'[FECHA]'), false, 10);
+    line('Lugar: ' + (a.lugar||'[LUGAR]'), false, 10);
+    line('Vehiculo: Dominio ' + (a.dominio||'[DOMINIO]') + ' - ' + (a.vehiculo||'[VEHICULO]'), false, 10);
+    if(a.velocidad) line('Velocidad registrada: ' + a.velocidad, false, 10);
     skip(0.5);
   });
   skip(0.5);
 
   let secNum = 2;
 
-  // Secciones por acta
   actas.forEach((a, idx) => {
     const nActa = a.acta || '[ACTA ' + (idx+1) + ']';
     const tituloActa = actas.length > 1 ? ' - ACTA N ' + nActa : '';
     let subSecNum = 1;
     const hayAlgo = a.presc || a.nulidad || a.morig || a.pagoSubsidio || a.pagoDirecto;
     if (!hayAlgo) return;
-
-    if (actas.length > 1) {
-      titulo(toRoman(secNum) + '. RESPECTO DEL ACTA N ' + nActa);
-      secNum++;
-    }
-
-    let subNum2 = actas.length > 1 ? 0 : secNum; // si hay subtitulos dentro de acta
+    if (actas.length > 1) { titulo(toRoman(secNum) + '. RESPECTO DEL ACTA N ' + nActa); secNum++; }
 
     if(a.presc){
-      const tit = actas.length > 1 ? (subSecNum++) + '.1.' : toRoman(secNum)+ '.';
       titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PRESCRIPCION DE LA INFRACCION' + tituloActa);
       parrafo('El articulo 89 de la Ley Nacional de Transito N 24.449, de aplicacion en el territorio de la Provincia de Buenos Aires, dispone que la prescripcion de la accion por falta grave se opera a los CINCO (5) anos. Habiendo transcurrido ampliamente dicho plazo desde la fecha de comision de la infraccion N ' + nActa + ', sin que constara acto interruptivo valido debidamente notificado, la misma ha prescripto de pleno derecho.');
       parrafo('En consecuencia, corresponde declarar extinguida la accion contravencional y disponer el archivo de las presentes actuaciones.');
       if(actas.length === 1) secNum++;
     }
-
     if(a.nulidad){
       titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'NULIDAD DEL ACTA' + tituloActa);
       parrafo('El suscripto solicita la declaracion de NULIDAD del acta N ' + nActa + ' labrada, en virtud de los siguientes vicios que afectan su validez formal y sustancial:');
       let subNum = 1;
-      if(a.nulActa){
-        writeLine(subNum + '. Ilegibilidad del acta', fontTimesBold, 11);
-        skip(0.3);
-        parrafo('El acta de infraccion labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitucion Nacional.', 10);
-        subNum++;
-      }
-      if(a.nulFoto){
-        writeLine(subNum + '. Ilegibilidad de la fotomulta respecto al dominio (patente)', fontTimesBold, 11);
-        skip(0.3);
-        parrafo('La fotografia o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehiculo infractor, impidiendo establecer con certeza que el vehiculo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribucion de la infraccion al vehiculo Dominio ' + (a.dominio||'[DOMINIO]') + ' y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta.', 10);
-        subNum++;
-      }
+      if(a.nulActa){ line(subNum + '. Ilegibilidad del acta', true); skip(0.3); parrafo('El acta de infraccion labrada presenta ilegibilidades que impiden conocer con certeza su contenido, afectando el derecho de defensa del imputado. La falta de claridad en los datos consignados constituye un vicio formal que acarrea la nulidad del acto administrativo, conforme el principio de legalidad formal y el derecho a la defensa en juicio reconocido por el art. 18 de la Constitucion Nacional.', 10); subNum++; }
+      if(a.nulFoto){ line(subNum + '. Ilegibilidad de la fotomulta respecto al dominio (patente)', true); skip(0.3); parrafo('La fotografia o imagen captada por el sistema de control de velocidad resulta ilegible en cuanto al dominio del vehiculo infractor, impidiendo establecer con certeza que el vehiculo identificado en el acta sea el mismo que aparece en la imagen. Esta circunstancia priva al acto de uno de sus elementos esenciales de prueba, tornando incierta la atribucion de la infraccion al vehiculo Dominio ' + (a.dominio||'[DOMINIO]') + ' y, por ende, al suscripto. Ello acarrea la nulidad de pleno derecho del acta.', 10); subNum++; }
       if(!a.nulActa && !a.nulFoto) parrafo('[Especificar el motivo de nulidad]');
       if(actas.length === 1) secNum++;
     }
-
     if(a.morig){
       titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'MORIGERACION DE LA SANCION' + tituloActa);
       parrafo('Sin perjuicio de lo anterior, y para el supuesto en que V.S. considerara acreditada la infraccion N ' + nActa + ', el suscripto solicita la morigeracion de la sancion impuesta, con fundamento en los principios de razonabilidad y proporcionalidad de la pena.');
-      writeLine('1. Principio de proporcionalidad y razonabilidad', fontTimesBold, 11);
-      skip(0.3);
+      line('1. Principio de proporcionalidad y razonabilidad', true); skip(0.3);
       parrafo('La sancion impuesta debe guardar adecuada proporcion con la entidad real de la conducta reprochada. La Ley Nacional de Transito N 24.449 recepta expresamente el principio de proporcionalidad en su articulado, estableciendo un regimen graduado de infracciones segun su gravedad. Aplicar la maxima escala sancionatoria ante un exceso de escasa magnitud resulta contrario al principio de proporcionalidad que debe regir toda sancion administrativa. El principio de razonabilidad -con rango constitucional en virtud del art. 28 de la Constitucion Nacional- exige adecuacion entre la sancion y la falta cometida.', 10);
-      writeLine('2. Franquicia legal y margen de tolerancia', fontTimesBold, 11);
-      skip(0.3);
+      line('2. Franquicia legal y margen de tolerancia', true); skip(0.3);
       parrafo('La propia Ley N 24.449 reconoce la existencia de una franquicia implicita en materia de infracciones de velocidad, al exigir proporcionalidad entre la conducta y la respuesta estatal. Los equipos de medicion presentan margenes de error tecnico reconocidos por sus fabricantes y la normativa metrologica, lo que introduce razonable duda sobre la exactitud de la medicion cuando el exceso es de escasa magnitud.', 10);
-      writeLine('3. Ausencia de antecedentes infraccionales', fontTimesBold, 11);
-      skip(0.3);
+      line('3. Ausencia de antecedentes infraccionales', true); skip(0.3);
       parrafo('El suscripto no registra antecedentes de infracciones de transito, lo que acredita una conducta vial responsable y habitual, circunstancia que debe ser valorada positivamente al momento de graduar la sancion conforme los principios generales del derecho de faltas.', 10);
       if(actas.length === 1) secNum++;
     }
-
     if(a.pagoSubsidio){
       titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PAGO VOLUNTARIO EN SUBSIDIO' + tituloActa);
       parrafo('Para el supuesto en que V.S. no hiciera lugar a las peticiones anteriores respecto del Acta N ' + nActa + ', el suscripto solicita se le permita acceder al pago voluntario de la multa, en ejercicio del derecho reconocido por la Ley Nacional de Transito N 24.449 y la Ley Provincial N 13.927 y su modificatoria Ley N 15.002, como mecanismo de regularizacion con los beneficios que ello conlleva.');
       if(actas.length === 1) secNum++;
     }
-
     if(a.pagoDirecto){
       titulo((actas.length > 1 ? '' : toRoman(secNum)+'. ') + 'PAGO VOLUNTARIO' + tituloActa);
       parrafo('El suscripto se presenta a regularizar su situacion mediante el pago voluntario de la multa correspondiente al Acta N ' + nActa + ', en ejercicio del derecho que le asiste conforme la normativa vigente.');
@@ -7007,45 +7182,49 @@ async function generarFaltaPDF(){
     parrafo('En ejercicio de la facultad prevista por la normativa vigente en materia de faltas de transito de la Provincia de Buenos Aires, el suscripto solicita la prorroga de jurisdiccion al juzgado al que se dirige el presente, en razon de ser el mas cercano a su domicilio legal radicado en ' + (domicilio||'[DOMICILIO]') + '.');
     secNum++;
   }
-
-  if(extra){
-    titulo(toRoman(secNum) + '. CONSIDERACIONES ADICIONALES');
-    parrafo(extra);
-    secNum++;
-  }
+  if(extra){ titulo(toRoman(secNum) + '. CONSIDERACIONES ADICIONALES'); parrafo(extra); secNum++; }
 
   titulo(toRoman(secNum) + '. PETITORIO');
   parrafo('Por todo lo expuesto, solicito a V.S. que:');
   let petNum = 1;
-  writeLine(petNum++ + ') Tenga por presentado el presente descargo en legal tiempo y forma.', fontTimes, 11, 15);
-  if(pedirProrroga) writeLine(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', fontTimes, 11, 15);
+  line(petNum++ + ') Tenga por presentado el presente descargo en legal tiempo y forma.', false, 15);
+  if(pedirProrroga) line(petNum++ + ') Haga lugar a la prorroga de jurisdiccion solicitada.', false, 15);
   actas.forEach(a => {
     const nActa = a.acta || '[ACTA]';
-    const suf = actas.length > 1 ? ' (Acta N ' + nActa + ')' : '';
-    if(a.presc)        writeLine(petNum++ + ') Declare prescripta la infraccion N ' + nActa + ' y disponga el archivo de las actuaciones.', fontTimes, 11, 15);
-    if(a.nulidad)      writeLine(petNum++ + ') Declare la NULIDAD del Acta N ' + nActa + ' por los vicios formales denunciados.', fontTimes, 11, 15);
-    if(a.morig)        writeLine(petNum++ + ') Morigere la sancion del Acta N ' + nActa + ' aplicando los principios de razonabilidad y proporcionalidad.', fontTimes, 11, 15);
-    if(a.pagoSubsidio) writeLine(petNum++ + ') En subsidio, autorice el acceso al pago voluntario del Acta N ' + nActa + ' con los beneficios de ley.', fontTimes, 11, 15);
-    if(a.pagoDirecto)  writeLine(petNum++ + ') Tenga por presentado el pago voluntario del Acta N ' + nActa + ' y proceda conforme a derecho.', fontTimes, 11, 15);
+    if(a.presc)        line(petNum++ + ') Declare prescripta la infraccion N ' + nActa + ' y disponga el archivo de las actuaciones.', false, 15);
+    if(a.nulidad)      line(petNum++ + ') Declare la NULIDAD del Acta N ' + nActa + ' por los vicios formales denunciados.', false, 15);
+    if(a.morig)        line(petNum++ + ') Morigere la sancion del Acta N ' + nActa + ' aplicando los principios de razonabilidad y proporcionalidad.', false, 15);
+    if(a.pagoSubsidio) line(petNum++ + ') En subsidio, autorice el acceso al pago voluntario del Acta N ' + nActa + ' con los beneficios de ley.', false, 15);
+    if(a.pagoDirecto)  line(petNum++ + ') Tenga por presentado el pago voluntario del Acta N ' + nActa + ' y proceda conforme a derecho.', false, 15);
   });
-  writeLine(petNum++ + ') Provea de conformidad, pues es de JUSTICIA.', fontTimes, 11, 15);
+  line(petNum++ + ') Provea de conformidad, pues es de JUSTICIA.', false, 15);
   skip();
-  writeLine('Sin otro particular, saludo a Ud. atentamente.', fontTimes, 11);
-  skip(3);
-  writeLine(nombre||'[NOMBRE]', fontTimesBold, 11);
-  writeLine('DNI N ' + (dni||'[DNI]'), fontTimes, 11);
-  writeLine(caracter, fontTimes, 11);
-  const primerActa = actas.find(a => a.dominio);
-  if(primerActa) writeLine('Dominio ' + primerActa.dominio + (primerActa.vehiculo ? ' - ' + primerActa.vehiculo : ''), fontTimes, 11);
+  line('Sin otro particular, saludo a Ud. atentamente.');
+  skip(2);
+  // Firma (imagen extraída del DNI + datos del titular)
+  L.push({ type: 'firma', firmaDataUrl,
+    nombre: fpSanitize(nombre), dni: fpSanitize(dni),
+    caracter: fpSanitize(caracter),
+    dominio: actas[0]?.dominio ? fpSanitize('Dominio ' + actas[0].dominio + (actas[0].vehiculo ? ' - ' + actas[0].vehiculo : '')) : ''
+  });
 
-  await fpAgregarDniAlPDF(pdfDoc, 'd');
-
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes],{type:'application/pdf'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'faltas-prov-descargo-' + Date.now() + '.pdf'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  // Renderizar a canvas y descargar como JPG
+  try {
+    const pages = await fpRenderizarDescargoCanvas(L, firmaDataUrl, dniFrente, dniDorso, fpSanitize(nombre), fpSanitize(dni), fpSanitize(caracter), actas[0]?.dominio, actas[0]?.vehiculo);
+    const ts = Date.now();
+    pages.forEach((cv, i) => {
+      const url = cv.toDataURL('image/jpeg', 0.92);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `faltas-prov-descargo-${ts}-p${i+1}.jpg`;
+      a.click();
+    });
+  } catch(e) {
+    console.error('Error generando JPG:', e);
+    alert('Error al generar el JPG: ' + e.message);
+  } finally {
+    if(genBtn){ genBtn.disabled = false; genBtn.textContent = '📄 Generar JPG'; }
+  }
 }
 
 
