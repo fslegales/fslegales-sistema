@@ -7079,6 +7079,45 @@ async function fpExtraerFirmaDelDNI(dniDataUrl, escrito) {
   }
 }
 
+// ── GENERA HOJA DE DNI COMO CANVAS SEPARADO (no se adjunta al descargo) ─────
+async function fpRenderizarDniCanvas(dniFrente, dniDorso) {
+  const MM = 3.7795;
+  const ESC = 2;
+  const PW = Math.round(210 * MM * ESC);
+  const PH = Math.round(297 * MM * ESC);
+  const ML = Math.round(25 * MM * ESC);
+  const MR = Math.round(25 * MM * ESC);
+  const MT = Math.round(25 * MM * ESC);
+  const TW = PW - ML - MR;
+  const LH = Math.round(5.8 * MM * ESC);
+  const FONT_NORMAL = `${Math.round(11 * ESC * 0.352778 * MM)}px "Times New Roman", Times, serif`;
+  const FONT_BOLD   = `bold ${Math.round(11 * ESC * 0.352778 * MM)}px "Times New Roman", Times, serif`;
+
+  const dniCv = document.createElement('canvas');
+  dniCv.width = PW; dniCv.height = PH;
+  const dctx = dniCv.getContext('2d');
+  dctx.fillStyle = '#ffffff';
+  dctx.fillRect(0,0,PW,PH);
+  dctx.font = FONT_BOLD;
+  dctx.fillStyle = '#000000';
+  dctx.fillText('DOCUMENTO NACIONAL DE IDENTIDAD - TITULAR', ML, MT);
+  dctx.font = FONT_NORMAL;
+  dctx.fillStyle = '#444444';
+  dctx.fillText('Frente y dorso que se acompañan al descargo presentado.', ML, MT + LH);
+  dctx.fillStyle = '#000000';
+  const halfH = Math.round((PH - MT - MT) / 2) - LH;
+  const drawDNIImg = async (dataUrl, label, labelY, imgY) => {
+    dctx.font = FONT_BOLD;
+    dctx.fillText(label, ML, labelY);
+    const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=dataUrl; });
+    const scale = Math.min(TW / img.naturalWidth, halfH / img.naturalHeight);
+    dctx.drawImage(img, ML, imgY, img.naturalWidth*scale, img.naturalHeight*scale);
+  };
+  if (dniFrente) await drawDNIImg(dniFrente, 'Frente', MT + LH*2, MT + LH*3);
+  if (dniDorso)  await drawDNIImg(dniDorso, 'Dorso', MT + PH/2 - LH, MT + PH/2);
+  return dniCv;
+}
+
 // ── GENERA EL DESCARGO COMO IMAGEN JPG ──────────────────────────────────────
 async function fpRenderizarDescargoCanvas(lineas, firmaDataUrl, dniFrente, dniDorso, nombre, dni, caracter, dominio, vehiculo) {
   const MM = 3.7795; // px por mm a 96dpi; usamos escala 2x para calidad
@@ -7201,33 +7240,6 @@ async function fpRenderizarDescargoCanvas(lineas, firmaDataUrl, dniFrente, dniDo
       }
     }
     pageCanvases.push(cv);
-  }
-  
-  // Agregar páginas de DNI si existen
-  if (dniFrente || dniDorso) {
-    const dniCv = document.createElement('canvas');
-    dniCv.width = PW; dniCv.height = PH;
-    const dctx = dniCv.getContext('2d');
-    dctx.fillStyle = '#ffffff';
-    dctx.fillRect(0,0,PW,PH);
-    dctx.font = FONT_BOLD;
-    dctx.fillStyle = '#000000';
-    dctx.fillText('DOCUMENTO NACIONAL DE IDENTIDAD - TITULAR', ML, MT);
-    dctx.font = FONT_NORMAL;
-    dctx.fillStyle = '#444444';
-    dctx.fillText('Frente y dorso adjuntos a los fines del presente escrito.', ML, MT + LH);
-    dctx.fillStyle = '#000000';
-    const halfH = Math.round((PH - MT - MT) / 2) - LH;
-    const drawDNIImg = async (dataUrl, labelY, imgY) => {
-      dctx.font = FONT_BOLD;
-      dctx.fillText(dataUrl === dniFrente ? 'Frente' : 'Dorso', ML, labelY);
-      const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=dataUrl; });
-      const scale = Math.min(TW / img.naturalWidth, halfH / img.naturalHeight);
-      dctx.drawImage(img, ML, imgY, img.naturalWidth*scale, img.naturalHeight*scale);
-    };
-    if (dniFrente) await drawDNIImg(dniFrente, MT + LH*2, MT + LH*3);
-    if (dniDorso)  await drawDNIImg(dniDorso, MT + PH/2 - LH, MT + PH/2);
-    pageCanvases.push(dniCv);
   }
   
   // ── UNIFICAR TODAS LAS PÁGINAS EN UN SOLO JPG VERTICAL ──────────────────
@@ -7422,14 +7434,24 @@ async function generarFaltaPDF(){
     dominio: actas[0]?.dominio ? fpSanitize('Dominio ' + actas[0].dominio + (actas[0].vehiculo ? ' - ' + actas[0].vehiculo : '')) : ''
   });
 
-  // Renderizar a canvas unificado y descargar como un solo JPG
+  // Renderizar: el descargo y el DNI salen como DOS archivos separados
   try {
-    const unified = await fpRenderizarDescargoCanvas(L, firmaDataUrl, dniFrente, dniDorso, fpSanitize(nombre), fpSanitize(dni), fpSanitize(caracter), actas[0]?.dominio, actas[0]?.vehiculo);
-    const url = unified.toDataURL('image/jpeg', 0.92);
+    const ts = Date.now();
+    const unified = await fpRenderizarDescargoCanvas(L, firmaDataUrl, null, null, fpSanitize(nombre), fpSanitize(dni), fpSanitize(caracter), actas[0]?.dominio, actas[0]?.vehiculo);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `faltas-prov-descargo-${Date.now()}.jpg`;
+    a.href = unified.toDataURL('image/jpeg', 0.92);
+    a.download = `faltas-prov-descargo-${ts}.jpg`;
     a.click();
+
+    // DNI en archivo aparte (si hay imágenes cargadas)
+    if (dniFrente || dniDorso) {
+      const dniCv = await fpRenderizarDniCanvas(dniFrente, dniDorso);
+      await new Promise(r => setTimeout(r, 400)); // evitar que el navegador bloquee la 2da descarga
+      const a2 = document.createElement('a');
+      a2.href = dniCv.toDataURL('image/jpeg', 0.92);
+      a2.download = `faltas-prov-dni-${ts}.jpg`;
+      a2.click();
+    }
   } catch(e) {
     console.error('Error generando JPG:', e);
     alert('Error al generar el JPG: ' + e.message);
